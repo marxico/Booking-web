@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Tech Solutions</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header" id="siteHeader">
+    <div class="nav-shell">
+      <a class="brand" href="#home">Auralis Tech</a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#home" class="active">Home</a>
+        <a href="#appointment">Book Appointment</a>
+        <a href="#services">Services &amp; Promotions</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-panel">
+        <div class="hero-copy">
+          <span class="eyebrow">Precision support for modern teams</span>
+          <h1>Modern Tech Solutions</h1>
+          <p>
+            Thoughtful consulting, premium support, and clear next steps for businesses that want technology to feel effortless.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#appointment">Book a Call</a>
+            <a class="btn btn-secondary" href="#services">Explore Services</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="appointment">
+      <div class="container">
+        <div class="section-heading reveal">
+          <h2>Book Appointment</h2>
+          <p>Schedule a focused consultation with a clean, frictionless experience designed to keep the process simple.</p>
+        </div>
+
+        <div class="appointment-layout reveal">
+          <div class="form-card">
+            <form id="appointmentForm">
+              <div class="form-grid">
+                <div class="field">
+                  <label for="name">Full Name</label>
+                  <input id="name" name="name" type="text" placeholder="Your full name" required>
+                </div>
+                <div class="field">
+                  <label for="email">Email</label>
+                  <input id="email" name="email" type="email" placeholder="name@example.com" required>
+                </div>
+                <div class="field">
+                  <label for="date">Date</label>
+                  <input id="date" name="date" type="date" required>
+                </div>
+                <div class="field">
+                  <label for="time">Time</label>
+                  <select id="time" name="time" required>
+                    <option value="" selected disabled>Select a time</option>
+                    <option>09:00 AM</option>
+                    <option>10:30 AM</option>
+                    <option>12:00 PM</option>
+                    <option>02:00 PM</option>
+                    <option>03:30 PM</option>
+                    <option>05:00 PM</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-footer">
+                <button class="btn btn-primary" type="submit">Confirm Appointment</button>
+                <div class="success-message" id="successMessage" aria-live="polite"></div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="services">
+      <div class="container services-stack">
+        <div class="section-heading reveal">
+          <h2>Services &amp; Promotions</h2>
+          <p>Premium digital support with clean delivery, measurable outcomes, and space for teams to focus on what matters.</p>
+        </div>
+
+        <div class="promo-card reveal">
+          <span class="promo-label">Featured Promotion</span>
+          <h3>Spring Strategy Session</h3>
+          <p>Reserve a discovery call this month and receive a complimentary systems audit summary with prioritized recommendations.</p>
+        </div>
+
+        <div class="services-grid">
+          <article class="service-card reveal">
+            <div class="service-meta">
+              <span class="service-tag">Consulting</span>
+              <span class="price">$149</span>
+            </div>
+            <h3>Tech Advisory Call</h3>
+            <p>One-on-one guidance for roadmap decisions, tooling choices, and practical execution planning.</p>
+            <a class="service-link" href="#appointment">Book now</a>
+          </article>
+
+          <article class="service-card reveal">
+            <div class="service-meta">
+              <span class="service-tag">Optimization</span>
+              <span class="price">$249</span>
+            </div>
+            <h3>Workflow Audit</h3>
+            <p>Identify bottlenecks, refine team processes, and simplify the day-to-day flow across your stack.</p>
+            <a class="service-link" href="#appointment">Book now</a>
+          </article>
+
+          <article class="service-card reveal">
+            <div class="service-meta">
+              <span class="service-tag">Support</span>
+              <span class="price">$99</span>
+            </div>
+            <h3>Device Setup</h3>
+            <p>White-glove onboarding for laptops, mobile devices, and cloud accounts with a premium support touch.</p>
+            <a class="service-link" href="#appointment">Book now</a>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Crafted for clarity, focus, and a quietly premium digital experience.
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
