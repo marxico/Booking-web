@@ -239,6 +239,7 @@ section {
 }
 
 .form-card,
+.agenda-card,
 .promo-card,
 .service-card {
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -252,6 +253,10 @@ section {
   padding: 1.5rem;
   max-width: 760px;
   margin: 0 auto;
+}
+
+.agenda-card {
+  padding: 1.5rem;
 }
 
 .form-grid {
@@ -310,6 +315,65 @@ section {
 .success-message.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.agenda-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.appointments-status {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.appointments-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.appointment-item {
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.appointment-item__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.appointment-item h3,
+.appointment-item p {
+  margin: 0;
+}
+
+.appointment-item p + p {
+  margin-top: 0.45rem;
+}
+
+.unlock-button {
+  margin-top: 1rem;
+  min-width: 0;
+}
+
+.field select:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--muted);
 }
 
 .services-stack {
@@ -441,6 +505,10 @@ footer {
   }
 
   .form-card {
+    padding: 2rem;
+  }
+
+  .agenda-card {
     padding: 2rem;
   }
 

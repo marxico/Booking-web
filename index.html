@@ -13,6 +13,7 @@
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#home" class="active">Home</a>
         <a href="#appointment">Book Appointment</a>
+        <a href="#agenda">Schedule</a>
         <a href="#services">Services &amp; Promotions</a>
       </nav>
     </div>
@@ -61,13 +62,7 @@
                 <div class="field">
                   <label for="time">Time</label>
                   <select id="time" name="time" required>
-                    <option value="" selected disabled>Select a time</option>
-                    <option>09:00 AM</option>
-                    <option>10:30 AM</option>
-                    <option>12:00 PM</option>
-                    <option>02:00 PM</option>
-                    <option>03:30 PM</option>
-                    <option>05:00 PM</option>
+                    <option value="" selected disabled>Select a date first</option>
                   </select>
                 </div>
               </div>
@@ -77,6 +72,23 @@
               </div>
             </form>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="agenda">
+      <div class="container">
+        <div class="section-heading reveal">
+          <h2>Schedule</h2>
+          <p>Review booked appointments and refresh the list whenever you need.</p>
+        </div>
+
+        <div class="agenda-card reveal">
+          <div class="agenda-toolbar">
+            <button class="btn btn-secondary" id="refreshAppointments" type="button">Refresh Appointments</button>
+            <div class="appointments-status" id="appointmentsStatus" aria-live="polite"></div>
+          </div>
+          <div class="appointments-list" id="appointmentsList"></div>
         </div>
       </div>
     </section>
@@ -133,6 +145,6 @@
     Crafted for clarity, focus, and a quietly premium digital experience.
   </footer>
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
