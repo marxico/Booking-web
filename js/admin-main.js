@@ -9,7 +9,7 @@ const statusLabels = {
 
 const renderAppointments = (appointments) => {
   if (!appointments.length) {
-    adminAppointmentsList.innerHTML = '<p class="empty-state">No appointments yet.</p>';
+    adminAppointmentsList.innerHTML = '<p class="empty-state">No service requests yet.</p>';
     return;
   }
 
@@ -35,7 +35,7 @@ const renderAppointments = (appointments) => {
 };
 
 const loadAdminAppointments = async () => {
-  adminStatus.textContent = "Loading appointments...";
+  adminStatus.textContent = "Loading Lawson service requests...";
 
   try {
     const response = await fetch("/admin/appointments");
@@ -47,13 +47,13 @@ const loadAdminAppointments = async () => {
     }
 
     if (!response.ok) {
-      throw new Error(result.error || "Could not load appointments.");
+      throw new Error(result.error || "Could not load service requests.");
     }
 
     renderAppointments(result.appointments);
-    adminStatus.textContent = `Loaded ${result.appointments.length} appointment(s).`;
+    adminStatus.textContent = `Loaded ${result.appointments.length} Lawson request(s).`;
   } catch (error) {
-    adminAppointmentsList.innerHTML = '<p class="empty-state">Could not load appointments.</p>';
+    adminAppointmentsList.innerHTML = '<p class="empty-state">Could not load service requests.</p>';
     adminStatus.textContent = error.message;
   }
 };
@@ -83,7 +83,7 @@ const updateAppointmentStatus = async (button) => {
     }
 
     if (!response.ok) {
-      throw new Error(result.error || "Could not update appointment.");
+      throw new Error(result.error || "Could not update service request.");
     }
 
     adminStatus.textContent = result.message;

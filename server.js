@@ -23,7 +23,7 @@ const mapDatabaseError = (error, fallbackMessage) => {
   }
 
   if (error.code === 'SQLITE_BUSY' || error.code === 'SQLITE_LOCKED') {
-    return 'The database is locked. Save and close your SQLite editor, then try again.';
+    return 'The Lawson scheduling database is locked. Save and close your SQLite editor, then try again.';
   }
 
   return fallbackMessage;
@@ -178,7 +178,7 @@ const ensureAppointmentsSchema = async () => {
 
 const validateAppointmentPayload = ({ name, email, date, time }) => {
   if (!name || !email || !date || !time) {
-    return 'All fields are required';
+    return 'All booking fields are required';
   }
 
   if (!ALL_TIMES.includes(time)) {
@@ -215,12 +215,12 @@ app.post('/admin/login', (req, res) => {
   const { username, password } = req.body;
 
   if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Invalid admin credentials' });
+    return res.status(401).json({ error: 'Invalid Lawson admin credentials' });
   }
 
   const token = createAdminSession();
   setSessionCookie(res, token);
-  res.json({ message: 'Admin login successful' });
+  res.json({ message: 'Lawson admin login successful' });
 });
 
 app.post('/admin/logout', (req, res) => {
@@ -231,7 +231,7 @@ app.post('/admin/logout', (req, res) => {
   }
 
   clearSessionCookie(res);
-  res.json({ message: 'Logged out successfully' });
+  res.json({ message: 'Logged out of Lawson admin successfully' });
 });
 
 app.post('/book', (req, res) => {
@@ -247,11 +247,11 @@ app.post('/book', (req, res) => {
     [date, time],
     (err, row) => {
       if (err) {
-        return res.status(500).json({ error: mapDatabaseError(err, 'Database error') });
+        return res.status(500).json({ error: mapDatabaseError(err, 'Lawson booking database error') });
       }
 
       if (row) {
-        return res.status(400).json({ error: 'Date and time are not available' });
+        return res.status(400).json({ error: 'This Lawson service slot is no longer available' });
       }
 
       db.run(
@@ -259,11 +259,11 @@ app.post('/book', (req, res) => {
         [name, email, date, time, 'pending'],
         function(insertError) {
           if (insertError) {
-            return res.status(500).json({ error: mapDatabaseError(insertError, 'Error saving the appointment') });
+            return res.status(500).json({ error: mapDatabaseError(insertError, 'Error saving the Lawson booking request') });
           }
 
           res.json({
-            message: `Thanks, ${name}. Your appointment request has been received for ${date} at ${time}.`
+            message: `Thanks, ${name}. Lawson Mobile Mechanic received your service request for ${date} at ${time}.`
           });
         }
       );
@@ -277,7 +277,7 @@ app.get('/admin/appointments', requireAdminAuth, (req, res) => {
     [],
     (err, rows) => {
       if (err) {
-        return res.status(500).json({ error: mapDatabaseError(err, 'Error loading appointments') });
+        return res.status(500).json({ error: mapDatabaseError(err, 'Error loading Lawson service requests') });
       }
 
       res.json({ appointments: rows });
@@ -290,19 +290,19 @@ app.patch('/admin/appointments/:id/status', requireAdminAuth, (req, res) => {
   const { status } = req.body;
 
   if (!APPOINTMENT_STATUSES.includes(status)) {
-    return res.status(400).json({ error: 'Invalid appointment status' });
+    return res.status(400).json({ error: 'Invalid Lawson request status' });
   }
 
   db.run('UPDATE appointments SET status = ? WHERE id = ?', [status, id], function(err) {
     if (err) {
-      return res.status(500).json({ error: mapDatabaseError(err, 'Error updating appointment status') });
+      return res.status(500).json({ error: mapDatabaseError(err, 'Error updating Lawson request status') });
     }
 
     if (this.changes === 0) {
-      return res.status(404).json({ error: 'Appointment not found' });
+      return res.status(404).json({ error: 'Lawson request not found' });
     }
 
-    res.json({ message: `Appointment marked as ${status}.` });
+    res.json({ message: `Lawson request marked as ${status}.` });
   });
 });
 
@@ -311,14 +311,14 @@ app.delete('/admin/appointments/:id', requireAdminAuth, (req, res) => {
 
   db.run('DELETE FROM appointments WHERE id = ?', [id], function(err) {
     if (err) {
-      return res.status(500).json({ error: mapDatabaseError(err, 'Error deleting appointment') });
+      return res.status(500).json({ error: mapDatabaseError(err, 'Error deleting Lawson request') });
     }
 
     if (this.changes === 0) {
-      return res.status(404).json({ error: 'Appointment not found' });
+      return res.status(404).json({ error: 'Lawson request not found' });
     }
 
-    res.json({ message: 'Appointment deleted successfully.' });
+    res.json({ message: 'Lawson request deleted successfully.' });
   });
 });
 
@@ -330,7 +330,7 @@ app.get('/available', (req, res) => {
     [date],
     (err, rows) => {
       if (err) {
-        return res.status(500).json({ error: mapDatabaseError(err, 'Database error') });
+        return res.status(500).json({ error: mapDatabaseError(err, 'Lawson booking database error') });
       }
 
       const bookedTimes = rows.map((row) => row.time);
