@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-body">
+  <main class="admin-main">
+    <section class="admin-hero">
+      <div class="container admin-hero__content">
+        <span class="eyebrow">Restricted access</span>
+        <h1>Admin Login</h1>
+        <p>Sign in to review appointment requests and manage booking decisions.</p>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="container">
+        <div class="admin-panel admin-panel--narrow">
+          <div class="admin-panel__header">
+            <div>
+              <h2>Sign In</h2>
+              <p>Use your admin credentials to access the dashboard.</p>
+            </div>
+          </div>
+
+          <form class="admin-login-form" id="adminLoginForm">
+            <div class="field">
+              <label for="adminUsername">Username</label>
+              <input id="adminUsername" name="username" type="text" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="adminPassword">Password</label>
+              <input id="adminPassword" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <button class="btn btn-primary" type="submit">Sign In</button>
+          </form>
+
+          <div class="admin-status" id="adminLoginStatus" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="admin-login.js"></script>
+</body>
+</html>

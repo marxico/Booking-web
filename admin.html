@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-body">
+  <main class="admin-main">
+    <section class="admin-hero">
+      <div class="container admin-hero__content">
+        <span class="eyebrow">Private admin view</span>
+        <h1>Appointments Dashboard</h1>
+        <p>Review incoming requests, accept bookings, or cancel them without editing the database manually.</p>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="container">
+        <div class="admin-panel">
+          <div class="admin-panel__header">
+            <div>
+              <h2>All Appointments</h2>
+              <p>Pending appointments keep their time slot blocked until you accept or cancel them.</p>
+            </div>
+            <div class="admin-panel__actions">
+              <button class="btn btn-secondary" id="adminRefreshButton" type="button">Refresh</button>
+              <button class="btn btn-secondary" id="adminLogoutButton" type="button">Log Out</button>
+            </div>
+          </div>
+          <div class="admin-status" id="adminStatus" aria-live="polite"></div>
+          <div class="admin-list" id="adminAppointmentsList"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

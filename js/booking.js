@@ -1,6 +1,6 @@
-import { dateInput, form, refreshAppointmentsButton, successMessage } from "./dom.js";
+import { dateInput, form, successMessage } from "./dom.js";
 import { loadAppointments } from "./appointments.js";
-import { setTimeOptions } from "./availability.js";
+import { loadAvailableTimes, setTimeOptions } from "./availability.js";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -15,10 +15,6 @@ const showMessage = (message) => {
 
 export const initializeBooking = () => {
   dateInput.min = today;
-
-  refreshAppointmentsButton.addEventListener("click", () => {
-    loadAppointments();
-  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -49,6 +45,9 @@ export const initializeBooking = () => {
       dateInput.min = today;
       setTimeOptions([], "Select a date first");
       loadAppointments();
+      if (dateInput.value) {
+        loadAvailableTimes(dateInput.value);
+      }
     } catch (error) {
       showMessage(error.message || "Error connecting to the server.");
     }

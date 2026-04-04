@@ -6,6 +6,3 @@ export const successMessage = document.getElementById("successMessage");
 export const revealItems = document.querySelectorAll(".reveal");
 export const dateInput = document.getElementById("date");
 export const timeSelect = document.getElementById("time");
-export const appointmentsList = document.getElementById("appointmentsList");
-export const appointmentsStatus = document.getElementById("appointmentsStatus");
-export const refreshAppointmentsButton = document.getElementById("refreshAppointments");

@@ -3,6 +3,7 @@ import { dateInput, timeSelect } from "./dom.js";
 const defaultPlaceholder = "Select a date first";
 
 export const setTimeOptions = (times, placeholder = defaultPlaceholder) => {
+  const previousValue = timeSelect.value;
   const options = [`<option value="" selected disabled>${placeholder}</option>`];
 
   times.forEach((time) => {
@@ -11,6 +12,10 @@ export const setTimeOptions = (times, placeholder = defaultPlaceholder) => {
 
   timeSelect.innerHTML = options.join("");
   timeSelect.disabled = times.length === 0;
+
+  if (previousValue && times.includes(previousValue)) {
+    timeSelect.value = previousValue;
+  }
 };
 
 export const loadAvailableTimes = async (selectedDate = dateInput.value) => {
@@ -41,6 +46,12 @@ export const loadAvailableTimes = async (selectedDate = dateInput.value) => {
 export const initializeAvailability = () => {
   dateInput.addEventListener("change", () => {
     loadAvailableTimes(dateInput.value);
+  });
+
+  timeSelect.addEventListener("focus", () => {
+    if (dateInput.value) {
+      loadAvailableTimes(dateInput.value);
+    }
   });
 
   setTimeOptions([], defaultPlaceholder);

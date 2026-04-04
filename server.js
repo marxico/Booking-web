@@ -1,15 +1,120 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
+const crypto = require('crypto');
+const path = require('path');
 
 const app = express();
 const PORT = 3000;
+const ALL_TIMES = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'];
+const APPOINTMENT_STATUSES = ['pending', 'accepted', 'canceled'];
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'change-me-admin';
+const SESSION_COOKIE_NAME = 'admin_session';
+const SESSION_DURATION_MS = 1000 * 60 * 60 * 8;
+const adminSessions = new Map();
 
 app.use(express.json());
 app.use(cors());
-app.use(express.static('.'));
 
-// Connect to the SQLite database.
+const mapDatabaseError = (error, fallbackMessage) => {
+  if (!error) {
+    return fallbackMessage;
+  }
+
+  if (error.code === 'SQLITE_BUSY' || error.code === 'SQLITE_LOCKED') {
+    return 'The database is locked. Save and close your SQLite editor, then try again.';
+  }
+
+  return fallbackMessage;
+};
+
+const parseCookies = (cookieHeader = '') => {
+  return cookieHeader
+    .split(';')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .reduce((cookies, entry) => {
+      const separatorIndex = entry.indexOf('=');
+
+      if (separatorIndex === -1) {
+        return cookies;
+      }
+
+      const key = entry.slice(0, separatorIndex);
+      const value = decodeURIComponent(entry.slice(separatorIndex + 1));
+      cookies[key] = value;
+      return cookies;
+    }, {});
+};
+
+const createSessionToken = () => crypto.randomBytes(24).toString('hex');
+
+const createAdminSession = () => {
+  const token = createSessionToken();
+  adminSessions.set(token, {
+    expiresAt: Date.now() + SESSION_DURATION_MS
+  });
+  return token;
+};
+
+const clearExpiredSessions = () => {
+  const now = Date.now();
+
+  adminSessions.forEach((session, token) => {
+    if (session.expiresAt <= now) {
+      adminSessions.delete(token);
+    }
+  });
+};
+
+const getValidSessionToken = (req) => {
+  clearExpiredSessions();
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies[SESSION_COOKIE_NAME];
+
+  if (!token) {
+    return null;
+  }
+
+  const session = adminSessions.get(token);
+
+  if (!session) {
+    return null;
+  }
+
+  if (session.expiresAt <= Date.now()) {
+    adminSessions.delete(token);
+    return null;
+  }
+
+  return token;
+};
+
+const setSessionCookie = (res, token) => {
+  res.setHeader(
+    'Set-Cookie',
+    `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_DURATION_MS / 1000}`
+  );
+};
+
+const clearSessionCookie = (res) => {
+  res.setHeader(
+    'Set-Cookie',
+    `${SESSION_COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`
+  );
+};
+
+const requireAdminAuth = (req, res, next) => {
+  const token = getValidSessionToken(req);
+
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  next();
+};
+
 const db = new sqlite3.Database('./appointments.db', (err) => {
   if (err) {
     console.error('Error connecting to the database:', err.message);
@@ -18,50 +123,161 @@ const db = new sqlite3.Database('./appointments.db', (err) => {
   }
 });
 
-// Create the appointments table if it does not already exist.
-db.run(`CREATE TABLE IF NOT EXISTS appointments (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  date TEXT NOT NULL,
-  time TEXT NOT NULL
-)`);
+db.configure('busyTimeout', 5000);
 
-// Book an appointment.
-app.post('/book', (req, res) => {
-  const { name, email, date, time } = req.body;
-
-  db.get('SELECT * FROM appointments WHERE date = ? AND time = ?', [date, time], (err, row) => {
+const runQuery = (query) => new Promise((resolve, reject) => {
+  db.run(query, (err) => {
     if (err) {
-      return res.status(500).json({ error: 'Database error' });
+      reject(err);
+      return;
     }
 
-    if (row) {
-      return res.status(400).json({ error: 'Date and time are not available' });
-    }
-
-    db.run(
-      'INSERT INTO appointments (name, email, date, time) VALUES (?, ?, ?, ?)',
-      [name, email, date, time],
-      function(insertError) {
-        if (insertError) {
-          return res.status(500).json({ error: 'Error saving the appointment' });
-        }
-
-        res.json({ message: `Thanks, ${name}. Your appointment is booked for ${date} at ${time}.` });
-      }
-    );
+    resolve();
   });
 });
 
-// Return all booked appointments.
-app.get('/appointments', (req, res) => {
+const allQuery = (query) => new Promise((resolve, reject) => {
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      reject(err);
+      return;
+    }
+
+    resolve(rows);
+  });
+});
+
+const ensureAppointmentsSchema = async () => {
+  try {
+    await runQuery('PRAGMA journal_mode = WAL');
+  } catch (err) {
+    console.warn('Could not enable WAL mode:', err.message);
+  }
+
+  try {
+    await runQuery('PRAGMA synchronous = NORMAL');
+  } catch (err) {
+    console.warn('Could not set synchronous mode:', err.message);
+  }
+
+  await runQuery(`CREATE TABLE IF NOT EXISTS appointments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    date TEXT NOT NULL,
+    time TEXT NOT NULL
+  )`);
+
+  const columns = await allQuery('PRAGMA table_info(appointments)');
+  const hasStatusColumn = columns.some((column) => column.name === 'status');
+
+  if (!hasStatusColumn) {
+    await runQuery("ALTER TABLE appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
+  }
+};
+
+const validateAppointmentPayload = ({ name, email, date, time }) => {
+  if (!name || !email || !date || !time) {
+    return 'All fields are required';
+  }
+
+  if (!ALL_TIMES.includes(time)) {
+    return 'Invalid appointment time';
+  }
+
+  return null;
+};
+
+app.get('/admin/session', (req, res) => {
+  const token = getValidSessionToken(req);
+  res.json({ authenticated: Boolean(token) });
+});
+
+app.get(['/admin', '/admin/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin-login.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+  res.redirect('/admin-login.html');
+});
+
+app.get('/admin.html', (req, res) => {
+  const token = getValidSessionToken(req);
+
+  if (!token) {
+    return res.redirect('/admin-login.html?next=/admin.html');
+  }
+
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.post('/admin/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Invalid admin credentials' });
+  }
+
+  const token = createAdminSession();
+  setSessionCookie(res, token);
+  res.json({ message: 'Admin login successful' });
+});
+
+app.post('/admin/logout', (req, res) => {
+  const token = getValidSessionToken(req);
+
+  if (token) {
+    adminSessions.delete(token);
+  }
+
+  clearSessionCookie(res);
+  res.json({ message: 'Logged out successfully' });
+});
+
+app.post('/book', (req, res) => {
+  const { name, email, date, time } = req.body;
+  const validationError = validateAppointmentPayload({ name, email, date, time });
+
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
+  db.get(
+    "SELECT * FROM appointments WHERE date = ? AND time = ? AND status != 'canceled'",
+    [date, time],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: mapDatabaseError(err, 'Database error') });
+      }
+
+      if (row) {
+        return res.status(400).json({ error: 'Date and time are not available' });
+      }
+
+      db.run(
+        'INSERT INTO appointments (name, email, date, time, status) VALUES (?, ?, ?, ?, ?)',
+        [name, email, date, time, 'pending'],
+        function(insertError) {
+          if (insertError) {
+            return res.status(500).json({ error: mapDatabaseError(insertError, 'Error saving the appointment') });
+          }
+
+          res.json({
+            message: `Thanks, ${name}. Your appointment request has been received for ${date} at ${time}.`
+          });
+        }
+      );
+    }
+  );
+});
+
+app.get('/admin/appointments', requireAdminAuth, (req, res) => {
   db.all(
-    'SELECT id, name, email, date, time FROM appointments ORDER BY date ASC, time ASC',
+    'SELECT id, name, email, date, time, status FROM appointments ORDER BY date ASC, time ASC, id ASC',
     [],
     (err, rows) => {
       if (err) {
-        return res.status(500).json({ error: 'Error loading appointments' });
+        return res.status(500).json({ error: mapDatabaseError(err, 'Error loading appointments') });
       }
 
       res.json({ appointments: rows });
@@ -69,39 +285,70 @@ app.get('/appointments', (req, res) => {
   );
 });
 
-// Unlock a previously booked appointment slot.
-app.delete('/appointments/:id', (req, res) => {
+app.patch('/admin/appointments/:id/status', requireAdminAuth, (req, res) => {
   const { id } = req.params;
+  const { status } = req.body;
 
-  db.run('DELETE FROM appointments WHERE id = ?', [id], function(err) {
+  if (!APPOINTMENT_STATUSES.includes(status)) {
+    return res.status(400).json({ error: 'Invalid appointment status' });
+  }
+
+  db.run('UPDATE appointments SET status = ? WHERE id = ?', [status, id], function(err) {
     if (err) {
-      return res.status(500).json({ error: 'Error unlocking the appointment' });
+      return res.status(500).json({ error: mapDatabaseError(err, 'Error updating appointment status') });
     }
 
     if (this.changes === 0) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
 
-    res.json({ message: 'Appointment unlocked successfully' });
+    res.json({ message: `Appointment marked as ${status}.` });
   });
 });
 
-// Return the available time slots for a given date.
-app.get('/available', (req, res) => {
-  const { date } = req.query;
-  const allTimes = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'];
+app.delete('/admin/appointments/:id', requireAdminAuth, (req, res) => {
+  const { id } = req.params;
 
-  db.all('SELECT time FROM appointments WHERE date = ?', [date], (err, rows) => {
+  db.run('DELETE FROM appointments WHERE id = ?', [id], function(err) {
     if (err) {
-      return res.status(500).json({ error: 'Database error' });
+      return res.status(500).json({ error: mapDatabaseError(err, 'Error deleting appointment') });
     }
 
-    const bookedTimes = rows.map((row) => row.time);
-    const availableTimes = allTimes.filter((time) => !bookedTimes.includes(time));
-    res.json({ availableTimes });
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    res.json({ message: 'Appointment deleted successfully.' });
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.get('/available', (req, res) => {
+  const { date } = req.query;
+
+  db.all(
+    "SELECT time FROM appointments WHERE date = ? AND status != 'canceled'",
+    [date],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: mapDatabaseError(err, 'Database error') });
+      }
+
+      const bookedTimes = rows.map((row) => row.time);
+      const availableTimes = ALL_TIMES.filter((time) => !bookedTimes.includes(time));
+      res.json({ availableTimes });
+    }
+  );
 });
+
+app.use(express.static('.'));
+
+ensureAppointmentsSchema()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Failed to initialize database schema:', error.message);
+    process.exit(1);
+  });
