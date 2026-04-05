@@ -409,13 +409,81 @@ section {
   margin-top: 1.25rem;
 }
 
+.payment-panel {
+  margin-top: 1.25rem;
+  padding: 1.15rem;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 243, 227, 0.92) 100%);
+}
+
+.payment-panel--inactive {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.payment-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.payment-panel__eyebrow {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6e5700;
+}
+
+.payment-panel__header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+
+.payment-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.payment-panel__copy,
+.payment-status {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+}
+
+.square-card {
+  min-height: 90px;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
 .success-message {
   min-height: 1.5rem;
-  color: #1f6b42;
   font-size: 0.95rem;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.success-message[data-state="success"] {
+  color: #1f6b42;
+}
+
+.success-message[data-state="error"] {
+  color: #991b1b;
 }
 
 .success-message.visible {
@@ -503,6 +571,12 @@ section {
 }
 
 .services-grid {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.35rem);
+}
+
+.pricing-grid,
+.pricing-form__list {
   display: grid;
   gap: clamp(1rem, 2vw, 1.35rem);
 }
@@ -624,6 +698,43 @@ section {
   width: 100%;
 }
 
+.pricing-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.pricing-editor-card {
+  padding: 1.2rem;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 12px 30px rgba(17, 17, 17, 0.05);
+}
+
+.pricing-editor-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.pricing-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.pricing-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted);
+}
+
+.pricing-check input {
+  width: 18px;
+  height: 18px;
+}
+
 .admin-login-form {
   display: grid;
   gap: 1rem;
@@ -736,6 +847,10 @@ footer {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.42) 100%);
 }
 
+#pricing {
+  background: linear-gradient(180deg, rgba(243, 198, 0, 0.05) 0%, rgba(255, 255, 255, 0.24) 100%);
+}
+
 #services,
 .admin-section {
   background: linear-gradient(180deg, rgba(23, 24, 26, 0.02) 0%, rgba(255, 255, 255, 0.32) 100%);
@@ -771,6 +886,12 @@ footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .pricing-grid,
+  .pricing-form__list,
+  .pricing-editor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -787,6 +908,10 @@ footer {
   }
 
   .services-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pricing-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 

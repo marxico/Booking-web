@@ -1,0 +1,62 @@
+Project setup instructions
+==========================
+
+Branch:
+square
+
+What this project uses:
+- Node.js + Express backend
+- React + Vite public frontend
+- Static admin pages in /public
+- SQLite database
+- Square for required booking payments
+
+Local URLs:
+- Website: http://localhost:3000/
+- Admin: http://localhost:3000/admin
+
+Default admin credentials:
+- Username: admin
+- Password: change-me-admin
+
+Important local files:
+- .env
+- .env.example
+- admin-credentials.txt
+
+Environment variables required for Square:
+- SQUARE_ENVIRONMENT=sandbox
+- SQUARE_ACCESS_TOKEN=REPLACE_WITH_YOUR_SQUARE_ACCESS_TOKEN
+- SQUARE_APP_ID=REPLACE_WITH_YOUR_SQUARE_APP_ID
+- SQUARE_LOCATION_ID=REPLACE_WITH_YOUR_SQUARE_LOCATION_ID
+- SQUARE_CURRENCY=USD
+
+Setup steps:
+1. Run: npm install
+2. Review .env.example
+3. Create or update .env with real Square credentials
+4. Build the React frontend: npm run build
+5. Start the server: npm start
+6. Open the website and admin URLs above
+
+Frontend commands:
+- npm run dev:client
+- npm run build
+
+Backend command:
+- npm start
+
+Booking behavior:
+- The booking fee comes from the pricing table in the admin area
+- Exactly one pricing item must be marked as the required booking fee
+- If booking fee is active and Square is not configured, online booking is disabled
+
+Admin pricing notes:
+- Open /admin
+- Sign in with the admin credentials
+- Use the Pricing Control section to update names, descriptions, prices, and booking fee selection
+
+Safe for Git:
+- This file is safe to upload
+- .env should not be uploaded
+- Replace placeholder Square values only inside your local .env

@@ -1,0 +1,398 @@
+require('dotenv').config();
+
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+
+const { port, publicDir, frontendDistDir, allTimes, appointmentStatuses, admin, square } = require('./config/appConfig');
+const { all, get, run, ensureSchema } = require('./db');
+const {
+  createAdminSession,
+  getValidSessionToken,
+  setSessionCookie,
+  clearSessionCookie,
+  deleteSession
+} = require('./services/adminSessions');
+const { formatMoney, getAllPricing, getPublicPricing, getBookingFee, updatePricing } = require('./services/pricingService');
+const { isConfigured: squareConfigured, createPayment } = require('./services/squareService');
+
+const app = express();
+
+app.use(express.json());
+app.use(cors());
+
+const mapDatabaseError = (error, fallbackMessage) => {
+  if (!error) {
+    return fallbackMessage;
+  }
+
+  if (error.code === 'SQLITE_BUSY' || error.code === 'SQLITE_LOCKED') {
+    return 'The Lawson scheduling database is locked. Save and close your SQLite editor, then try again.';
+  }
+
+  return fallbackMessage;
+};
+
+const requireAdminAuth = (req, res, next) => {
+  const token = getValidSessionToken(req);
+
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  next();
+};
+
+const getAppointmentBySlot = (date, time) => get(
+  "SELECT * FROM appointments WHERE date = ? AND time = ? AND status != 'canceled'",
+  [date, time]
+);
+
+const createBooking = async ({ name, phone, email, date, time, sourceId }) => {
+  const bookingFee = await getBookingFee();
+
+  if (!name || !phone || !email || !date || !time) {
+    const error = new Error('All booking fields are required');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!allTimes.includes(time)) {
+    const error = new Error('Invalid appointment time');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (bookingFee.priceCents > 0 && !sourceId) {
+    const error = new Error('Payment is required before this appointment can be reserved');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const existingAppointment = await getAppointmentBySlot(date, time);
+
+  if (existingAppointment) {
+    const error = new Error('This Lawson service slot is no longer available');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  let paymentStatus = 'not_required';
+  let paymentAmountCents = 0;
+  let squarePaymentId = null;
+  let squareOrderId = null;
+  let squareReceiptUrl = null;
+  let bookingSource = 'manual';
+
+  if (bookingFee.priceCents > 0) {
+    const payment = await createPayment({
+      sourceId,
+      amountCents: bookingFee.priceCents,
+      referenceId: `${date}-${time}`,
+      note: `Lawson booking for ${name} on ${date} at ${time}`
+    });
+
+    paymentStatus = 'paid';
+    paymentAmountCents = bookingFee.priceCents;
+    squarePaymentId = payment?.id || null;
+    squareOrderId = payment?.orderId || null;
+    squareReceiptUrl = payment?.receiptUrl || null;
+    bookingSource = 'square';
+  }
+
+  const result = await run(
+    `INSERT INTO appointments
+     (name, phone, email, date, time, status, payment_status, payment_amount_cents, square_payment_id, square_order_id, square_receipt_url, booking_source)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      name,
+      phone,
+      email,
+      date,
+      time,
+      'pending',
+      paymentStatus,
+      paymentAmountCents,
+      squarePaymentId,
+      squareOrderId,
+      squareReceiptUrl,
+      bookingSource
+    ]
+  );
+
+  return {
+    appointmentId: result.lastID,
+    paymentStatus,
+    receiptUrl: squareReceiptUrl,
+    serviceCallOutFeeFormatted: bookingFee.priceFormatted,
+    message: bookingFee.priceCents > 0
+      ? `Thanks, ${name}. Your ${bookingFee.priceFormatted} booking payment was approved and your request for ${date} at ${time} is pending review.`
+      : `Thanks, ${name}. Lawson Mobile Mechanic received your service request for ${date} at ${time}.`
+  };
+};
+
+app.get('/pricing', async (req, res) => {
+  try {
+    const pricing = await getPublicPricing();
+    res.json({ pricing });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Could not load pricing.') });
+  }
+});
+
+app.get('/square/config', async (req, res) => {
+  try {
+    const bookingFee = await getBookingFee();
+
+    res.json({
+      enabled: squareConfigured,
+      environment: square.environment,
+      appId: squareConfigured ? square.appId : '',
+      locationId: squareConfigured ? square.locationId : '',
+      currency: square.currency,
+      paymentRequired: bookingFee.priceCents > 0,
+      serviceCallOutFeeName: bookingFee.name,
+      serviceCallOutFeeCents: bookingFee.priceCents,
+      serviceCallOutFeeFormatted: bookingFee.priceFormatted
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not load Square payment settings.' });
+  }
+});
+
+app.get('/available', async (req, res) => {
+  try {
+    const rows = await all(
+      "SELECT time FROM appointments WHERE date = ? AND status != 'canceled'",
+      [req.query.date]
+    );
+
+    const bookedTimes = rows.map((row) => row.time);
+    const availableTimes = allTimes.filter((time) => !bookedTimes.includes(time));
+    res.json({ availableTimes });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Lawson booking database error') });
+  }
+});
+
+app.post('/book', async (req, res) => {
+  try {
+    const result = await createBooking(req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      error: error.statusCode ? error.message : mapDatabaseError(error, 'Error saving the Lawson booking request')
+    });
+  }
+});
+
+app.get('/admin/session', (req, res) => {
+  const token = getValidSessionToken(req);
+  res.json({ authenticated: Boolean(token) });
+});
+
+app.post('/admin/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (username !== admin.username || password !== admin.password) {
+    return res.status(401).json({ error: 'Invalid Lawson admin credentials' });
+  }
+
+  const token = createAdminSession();
+  setSessionCookie(res, token);
+  res.json({ message: 'Lawson admin login successful' });
+});
+
+app.post('/admin/logout', (req, res) => {
+  const token = getValidSessionToken(req);
+
+  if (token) {
+    deleteSession(token);
+  }
+
+  clearSessionCookie(res);
+  res.json({ message: 'Logged out of Lawson admin successfully' });
+});
+
+app.get('/admin/appointments', requireAdminAuth, async (req, res) => {
+  try {
+    const appointments = await all(
+      `SELECT id, name, phone, email, date, time, status, payment_status, payment_amount_cents,
+              square_payment_id, square_order_id, square_receipt_url, booking_source
+       FROM appointments
+       ORDER BY date ASC, time ASC, id ASC`
+    );
+
+    res.json({ appointments });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Error loading Lawson service requests') });
+  }
+});
+
+app.get('/admin/appointments/history', requireAdminAuth, async (req, res) => {
+  try {
+    const history = await all(
+      `SELECT id, appointment_id, name, phone, email, date, time, status, payment_status,
+              payment_amount_cents, square_payment_id, square_order_id, action, recorded_at
+       FROM appointment_history
+       ORDER BY recorded_at DESC, id DESC
+       LIMIT 100`
+    );
+
+    res.json({ history });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Error loading Lawson request history') });
+  }
+});
+
+app.post('/admin/appointments/clear', requireAdminAuth, async (req, res) => {
+  try {
+    const appointments = await all(
+      `SELECT id, name, phone, email, date, time, status, payment_status, payment_amount_cents,
+              square_payment_id, square_order_id
+       FROM appointments
+       ORDER BY date ASC, time ASC, id ASC`
+    );
+
+    if (!appointments.length) {
+      return res.json({ message: 'No Lawson requests to clear.' });
+    }
+
+    await run('BEGIN TRANSACTION');
+
+    try {
+      const recordedAt = new Date().toISOString();
+
+      for (const appointment of appointments) {
+        await run(
+          `INSERT INTO appointment_history
+           (appointment_id, name, phone, email, date, time, status, payment_status, payment_amount_cents, square_payment_id, square_order_id, action, recorded_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            appointment.id,
+            appointment.name,
+            appointment.phone,
+            appointment.email,
+            appointment.date,
+            appointment.time,
+            appointment.status,
+            appointment.payment_status,
+            appointment.payment_amount_cents,
+            appointment.square_payment_id,
+            appointment.square_order_id,
+            'cleared',
+            recordedAt
+          ]
+        );
+      }
+
+      await run('DELETE FROM appointments');
+      await run('COMMIT');
+    } catch (error) {
+      await run('ROLLBACK');
+      throw error;
+    }
+
+    res.json({ message: `Cleared ${appointments.length} Lawson request(s) and saved them to history.` });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Error clearing Lawson requests') });
+  }
+});
+
+app.patch('/admin/appointments/:id/status', requireAdminAuth, async (req, res) => {
+  try {
+    if (!appointmentStatuses.includes(req.body.status)) {
+      return res.status(400).json({ error: 'Invalid Lawson request status' });
+    }
+
+    const result = await run('UPDATE appointments SET status = ? WHERE id = ?', [req.body.status, req.params.id]);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Lawson request not found' });
+    }
+
+    res.json({ message: `Lawson request marked as ${req.body.status}.` });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Error updating Lawson request status') });
+  }
+});
+
+app.delete('/admin/appointments/:id', requireAdminAuth, async (req, res) => {
+  try {
+    const result = await run('DELETE FROM appointments WHERE id = ?', [req.params.id]);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Lawson request not found' });
+    }
+
+    res.json({ message: 'Lawson request deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Error deleting Lawson request') });
+  }
+});
+
+app.get('/admin/pricing', requireAdminAuth, async (req, res) => {
+  try {
+    const pricing = await getAllPricing();
+    res.json({ pricing });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Could not load pricing configuration') });
+  }
+});
+
+app.put('/admin/pricing', requireAdminAuth, async (req, res) => {
+  try {
+    const pricing = await updatePricing(req.body.items);
+    const bookingFee = pricing.find((item) => item.isBookingFee);
+
+    res.json({
+      message: `Pricing updated successfully. Booking fee is now ${bookingFee ? bookingFee.priceFormatted : formatMoney(0)}.`,
+      pricing
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Could not update pricing configuration' });
+  }
+});
+
+app.get(['/admin', '/admin/'], (req, res) => {
+  res.sendFile(path.join(publicDir, 'admin-login.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+  res.redirect('/admin-login.html');
+});
+
+app.get('/admin.html', (req, res) => {
+  const token = getValidSessionToken(req);
+
+  if (!token) {
+    return res.redirect('/admin-login.html?next=/admin.html');
+  }
+
+  res.sendFile(path.join(publicDir, 'admin.html'));
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendDistDir, 'index.html'));
+});
+
+app.use(express.static(publicDir, { index: false }));
+app.use(express.static(frontendDistDir));
+
+const startServer = async () => {
+  try {
+    await ensureSchema();
+
+    app.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to initialize database schema:', error.message);
+    process.exit(1);
+  }
+};
+
+module.exports = {
+  app,
+  startServer
+};

@@ -4,3 +4,7 @@ export const adminHistoryList = document.getElementById("adminHistoryList");
 export const adminRefreshButton = document.getElementById("adminRefreshButton");
 export const adminLogoutButton = document.getElementById("adminLogoutButton");
 export const adminStatus = document.getElementById("adminStatus");
+export const adminPricingForm = document.getElementById("adminPricingForm");
+export const adminPricingList = document.getElementById("adminPricingList");
+export const adminPricingStatus = document.getElementById("adminPricingStatus");
+export const adminSavePricingButton = document.getElementById("adminSavePricingButton");

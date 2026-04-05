@@ -20,6 +20,7 @@
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#home" class="active">Home</a>
         <a href="#appointment">Book Appointment</a>
+        <a href="#pricing">Pricing</a>
         <a href="#services">Services</a>
       </nav>
     </div>
@@ -53,8 +54,8 @@
 
           <article class="hero-card">
             <span class="hero-card__label">Call-Out Fee</span>
-            <h2>$90 diagnostic visit</h2>
-            <p>A straightforward on-site assessment with real next steps and no wasted time.</p>
+            <h2 id="heroBookingFeeTitle">Paid booking required</h2>
+            <p id="heroBookingFeeDescription">Appointments are only reserved after the booking fee is paid securely through Square.</p>
           </article>
 
           <article class="hero-card">
@@ -70,7 +71,7 @@
       <div class="container">
         <div class="section-heading reveal">
           <h2>Book Appointment</h2>
-          <p>Choose your preferred date and time, and send a service request directly to Lawson Mobile Mechanic.</p>
+          <p>Choose your preferred date and time, pay the booking amount, and send your request directly to Lawson Mobile Mechanic.</p>
         </div>
 
         <div class="appointment-layout reveal">
@@ -100,6 +101,20 @@
                   </select>
                 </div>
               </div>
+              <section class="payment-panel" id="paymentPanel" aria-live="polite">
+                <div class="payment-panel__header">
+                  <div>
+                    <p class="payment-panel__eyebrow">Square Payment</p>
+                    <h3 id="paymentTitle">Secure diagnostic payment</h3>
+                  </div>
+                  <span class="payment-badge" id="paymentAmountBadge">$0.00</span>
+                </div>
+                <p class="payment-panel__copy" id="paymentDescription">
+                  Add a card to pay the required booking amount before your appointment request is submitted.
+                </p>
+                <div class="square-card" id="squareCard"></div>
+                <p class="payment-status" id="paymentStatus">Loading Square payment setup...</p>
+              </section>
               <div class="form-footer">
                 <button class="btn btn-primary" type="submit">Request Appointment</button>
                 <div class="success-message" id="successMessage" aria-live="polite"></div>
@@ -112,10 +127,31 @@
             <h3>Convenient service without giving up quality</h3>
             <ul class="info-list">
               <li>Mobile repair and maintenance for cars, trucks, SUVs, and selected commercial vehicles.</li>
-              <li>Your time slot stays blocked once requested so other customers cannot grab it.</li>
+              <li>Your time slot is only locked after the required booking payment is approved.</li>
+              <li>Square collects the booking payment securely before the request reaches the admin dashboard.</li>
               <li>Appointments can later be reviewed, accepted, or canceled from the admin dashboard.</li>
             </ul>
           </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="container services-stack">
+        <div class="section-heading reveal">
+          <h2>Pricing</h2>
+          <p>Clear starting prices for common services, with the booking fee highlighted so customers know what must be paid to reserve a slot.</p>
+        </div>
+
+        <div class="pricing-grid" id="pricingList">
+          <article class="service-card">
+            <div class="service-meta">
+              <span class="service-tag">Loading</span>
+              <span class="price">...</span>
+            </div>
+            <h3>Loading pricing</h3>
+            <p>Fetching service pricing from the server.</p>
+          </article>
         </div>
       </div>
     </section>
@@ -137,21 +173,21 @@
           <article class="service-card reveal">
             <div class="service-meta">
               <span class="service-tag">Diagnostics</span>
-              <span class="price">$90+</span>
+              <span class="price" data-service-price="diagnostic_visit">$90.00</span>
             </div>
-            <h3>Mobile Diagnostic Visit</h3>
-            <p>On-site troubleshooting for warning lights, no-start issues, unusual sounds, and hard-to-track mechanical problems.</p>
-            <a class="service-link" href="#appointment">Request service</a>
+            <h3 data-service-name="diagnostic_visit">Mobile Diagnostic Visit</h3>
+            <p data-service-description="diagnostic_visit">On-site troubleshooting for warning lights, no-start issues, unusual sounds, and hard-to-track mechanical problems.</p>
+            <a class="service-link" href="#appointment" data-service-link="diagnostic_visit">Request service</a>
           </article>
 
           <article class="service-card reveal">
             <div class="service-meta">
               <span class="service-tag">Maintenance</span>
-              <span class="price">Quote</span>
+              <span class="price" data-service-price="brake_service">$125.00</span>
             </div>
-            <h3>Routine Maintenance</h3>
-            <p>Fluid checks, belts, brakes, batteries, and general upkeep handled where your vehicle already is.</p>
-            <a class="service-link" href="#appointment">Request service</a>
+            <h3 data-service-name="brake_service">Brake Service Inspection</h3>
+            <p data-service-description="brake_service">Pricing starts here for brake inspection and recommended service planning.</p>
+            <a class="service-link" href="#appointment" data-service-link="brake_service">Request service</a>
           </article>
 
           <article class="service-card reveal">
@@ -167,11 +203,11 @@
           <article class="service-card reveal">
             <div class="service-meta">
               <span class="service-tag">Roadside</span>
-              <span class="price">Fast</span>
+              <span class="price" data-service-price="roadside_assistance">$150.00</span>
             </div>
-            <h3>Emergency Assistance</h3>
-            <p>Roadside support for battery failures, belt issues, and urgent situations that need a calm, experienced mechanic.</p>
-            <a class="service-link" href="#appointment">Request service</a>
+            <h3 data-service-name="roadside_assistance">Emergency Assistance</h3>
+            <p data-service-description="roadside_assistance">Roadside support for battery failures, belt issues, and urgent situations that need a calm, experienced mechanic.</p>
+            <a class="service-link" href="#appointment" data-service-link="roadside_assistance">Request service</a>
           </article>
 
           <article class="service-card reveal">

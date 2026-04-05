@@ -5,14 +5,24 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "stop": "powershell -Command \"$connections = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($connections) { $connections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; Write-Host 'Stopped server on port 3000.' } else { Write-Host 'No server running on port 3000.' }\""
+    "stop": "powershell -Command \"$connections = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($connections) { $connections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; Write-Host 'Stopped server on port 3000.' } else { Write-Host 'No server running on port 3000.' }\"",
+    "build": "vite build --config frontend/vite.config.mjs",
+    "dev:client": "vite --config frontend/vite.config.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
     "express": "^5.2.1",
-    "sqlite3": "^6.0.1"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "sqlite3": "^6.0.1",
+    "square": "^44.0.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.3"
   }
 }
