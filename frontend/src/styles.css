@@ -470,6 +470,14 @@ section {
   background: rgba(255, 255, 255, 0.86);
 }
 
+.square-card--mock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  text-align: center;
+}
+
 .success-message {
   min-height: 1.5rem;
   font-size: 0.95rem;

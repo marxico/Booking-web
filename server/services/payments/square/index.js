@@ -1,15 +1,15 @@
 const crypto = require('crypto');
 const { SquareClient, SquareError } = require('square');
 
-const { square } = require('../config/appConfig');
+const { square } = require('../../../config/appConfig');
 
 const hasRealCredential = (value) => Boolean(value) && !String(value).startsWith('REPLACE_WITH_');
 
-const isConfigured = hasRealCredential(square.accessToken)
+const enabled = hasRealCredential(square.accessToken)
   && hasRealCredential(square.appId)
   && hasRealCredential(square.locationId);
 
-const squareClient = isConfigured
+const squareClient = enabled
   ? new SquareClient({
       token: square.accessToken
     })
@@ -29,7 +29,7 @@ const mapSquareError = (error, fallbackMessage) => {
 };
 
 const createPayment = async ({ sourceId, amountCents, referenceId, note }) => {
-  if (!isConfigured) {
+  if (!enabled) {
     const error = new Error('Square is not configured yet. Add your Square credentials before accepting paid bookings.');
     error.statusCode = 503;
     throw error;
@@ -66,6 +66,7 @@ const createPayment = async ({ sourceId, amountCents, referenceId, note }) => {
 };
 
 module.exports = {
-  isConfigured,
+  enabled,
+  providerLabel: 'Square',
   createPayment
 };

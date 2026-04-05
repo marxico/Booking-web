@@ -14,7 +14,14 @@ const {
   deleteSession
 } = require('./services/adminSessions');
 const { formatMoney, getAllPricing, getPublicPricing, getBookingFee, updatePricing } = require('./services/pricingService');
-const { isConfigured: squareConfigured, createPayment } = require('./services/squareService');
+const {
+  isMockMode,
+  isSquareMode,
+  paymentMode,
+  paymentEnabled,
+  paymentProviderLabel,
+  createPayment
+} = require('./services/payments');
 
 const app = express();
 
@@ -63,7 +70,7 @@ const createBooking = async ({ name, phone, email, date, time, sourceId }) => {
     throw error;
   }
 
-  if (bookingFee.priceCents > 0 && !sourceId) {
+  if (bookingFee.priceCents > 0 && paymentMode === 'square' && !sourceId) {
     const error = new Error('Payment is required before this appointment can be reserved');
     error.statusCode = 400;
     throw error;
@@ -97,7 +104,7 @@ const createBooking = async ({ name, phone, email, date, time, sourceId }) => {
     squarePaymentId = payment?.id || null;
     squareOrderId = payment?.orderId || null;
     squareReceiptUrl = payment?.receiptUrl || null;
-    bookingSource = 'square';
+    bookingSource = paymentMode;
   }
 
   const result = await run(
@@ -145,10 +152,12 @@ app.get('/square/config', async (req, res) => {
     const bookingFee = await getBookingFee();
 
     res.json({
-      enabled: squareConfigured,
+      enabled: paymentEnabled,
+      paymentMode,
+      paymentProviderLabel,
       environment: square.environment,
-      appId: squareConfigured ? square.appId : '',
-      locationId: squareConfigured ? square.locationId : '',
+      appId: paymentEnabled && isSquareMode ? square.appId : '',
+      locationId: paymentEnabled && isSquareMode ? square.locationId : '',
       currency: square.currency,
       paymentRequired: bookingFee.priceCents > 0,
       serviceCallOutFeeName: bookingFee.name,

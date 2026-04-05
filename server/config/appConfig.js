@@ -17,6 +17,7 @@ module.exports = {
     sessionDurationMs: 1000 * 60 * 60 * 8
   },
   square: {
+    paymentProviderMode: (process.env.PAYMENT_PROVIDER_MODE || 'mock').toLowerCase(),
     environment: (process.env.SQUARE_ENVIRONMENT || 'sandbox').toLowerCase(),
     accessToken: process.env.SQUARE_ACCESS_TOKEN || '',
     appId: process.env.SQUARE_APP_ID || '',

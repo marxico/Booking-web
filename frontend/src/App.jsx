@@ -135,7 +135,9 @@ function App() {
         setPricing(pricingResult.pricing || []);
         setSquareConfig(squareResult);
 
-        if (squareResult.enabled) {
+        if (squareResult.paymentMode === "mock") {
+          setPaymentStatusText("Test payment mode is active. Bookings will be approved with a simulated payment.");
+        } else if (squareResult.enabled) {
           setPaymentStatusText("Loading secure card entry...");
         } else if (squareResult.paymentRequired) {
           setPaymentStatusText("Square is not configured yet. Booking is currently disabled until payment credentials are added.");
@@ -152,7 +154,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!squareConfig?.enabled || !cardContainerRef.current || squareCardRef.current) {
+    if (squareConfig?.paymentMode !== "square" || !squareConfig?.enabled || !cardContainerRef.current || squareCardRef.current) {
       return;
     }
 
@@ -239,13 +241,13 @@ function App() {
     setIsSubmitting(true);
 
     try {
-      if (squareConfig?.paymentRequired && !squareConfig?.enabled) {
+      if (squareConfig?.paymentMode === "square" && squareConfig?.paymentRequired && !squareConfig?.enabled) {
         throw new Error("Online booking is disabled until Square is configured.");
       }
 
       let sourceId;
 
-      if (squareConfig?.enabled) {
+      if (squareConfig?.paymentMode === "square" && squareConfig?.enabled) {
         await squareSetupPromiseRef.current;
 
         const card = squareCardRef.current;
@@ -297,13 +299,15 @@ function App() {
   };
 
   const submitLabel = isSubmitting
-    ? squareConfig?.enabled
+    ? squareConfig?.paymentMode === "square" && squareConfig?.enabled
       ? "Processing payment..."
-      : "Requesting appointment..."
-    : squareConfig?.paymentRequired && !squareConfig?.enabled
+      : squareConfig?.paymentMode === "mock"
+        ? "Approving test payment..."
+        : "Requesting appointment..."
+    : squareConfig?.paymentMode === "square" && squareConfig?.paymentRequired && !squareConfig?.enabled
       ? "Booking unavailable"
       : squareConfig?.serviceCallOutFeeFormatted
-        ? `Pay ${squareConfig.serviceCallOutFeeFormatted} & Request Appointment`
+        ? `${squareConfig?.paymentMode === "mock" ? "Simulate" : "Pay"} ${squareConfig.serviceCallOutFeeFormatted} & Request Appointment`
         : "Request Appointment";
 
   const navClass = (id) => activeSection === id ? "active" : "";
@@ -407,22 +411,38 @@ function App() {
                     </div>
                   </div>
 
-                  <section className={`payment-panel ${!squareConfig?.enabled ? "payment-panel--inactive" : ""}`} aria-live="polite">
+                  <section className={`payment-panel ${squareConfig?.paymentMode === "square" && !squareConfig?.enabled ? "payment-panel--inactive" : ""}`} aria-live="polite">
                     <div className="payment-panel__header">
                       <div>
-                        <p className="payment-panel__eyebrow">Square Payment</p>
-                        <h3>{squareConfig?.enabled ? `Pay ${squareConfig.serviceCallOutFeeFormatted} to reserve` : squareConfig?.paymentRequired ? "Payment required before booking" : "Square payment not configured"}</h3>
+                        <p className="payment-panel__eyebrow">{squareConfig?.paymentProviderLabel || "Payment"}</p>
+                        <h3>
+                          {squareConfig?.paymentMode === "mock"
+                            ? `Simulate ${squareConfig.serviceCallOutFeeFormatted} payment`
+                            : squareConfig?.enabled
+                              ? `Pay ${squareConfig.serviceCallOutFeeFormatted} to reserve`
+                              : squareConfig?.paymentRequired
+                                ? "Payment required before booking"
+                                : "Square payment not configured"}
+                        </h3>
                       </div>
                       <span className="payment-badge">{squareConfig?.serviceCallOutFeeFormatted || bookingFee?.priceFormatted || "$0.00"}</span>
                     </div>
                     <p className="payment-panel__copy">
-                      {squareConfig?.enabled
+                      {squareConfig?.paymentMode === "mock"
+                        ? "This is a safe test mode. The booking flow records a simulated successful payment so you can validate the full experience before enabling real Square charges."
+                        : squareConfig?.enabled
                         ? `Your appointment request is submitted only after Square approves the ${squareConfig.serviceCallOutFeeName.toLowerCase()}.`
                         : squareConfig?.paymentRequired
                           ? "This business requires payment before a slot is reserved. Add valid Square credentials on the server to reopen online booking."
                           : "Add Square credentials on the server to switch this form from request-only mode into paid booking mode."}
                     </p>
-                    <div className="square-card" ref={cardContainerRef} />
+                    {squareConfig?.paymentMode === "square" ? (
+                      <div className="square-card" ref={cardContainerRef} />
+                    ) : (
+                      <div className="square-card square-card--mock">
+                        Test payment mode is on. No real card is required and no real charge will be sent.
+                      </div>
+                    )}
                     <p className="payment-status">{paymentStatusText}</p>
                   </section>
 
@@ -430,7 +450,7 @@ function App() {
                     <button
                       className="btn btn-primary"
                       type="submit"
-                      disabled={isSubmitting || (squareConfig?.paymentRequired && !squareConfig?.enabled)}
+                      disabled={isSubmitting || (squareConfig?.paymentMode === "square" && squareConfig?.paymentRequired && !squareConfig?.enabled)}
                     >
                       {submitLabel}
                     </button>

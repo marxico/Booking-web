@@ -25,11 +25,31 @@ Important local files:
 - admin-credentials.txt
 
 Environment variables required for Square:
+- PAYMENT_PROVIDER_MODE=mock
 - SQUARE_ENVIRONMENT=sandbox
 - SQUARE_ACCESS_TOKEN=REPLACE_WITH_YOUR_SQUARE_ACCESS_TOKEN
 - SQUARE_APP_ID=REPLACE_WITH_YOUR_SQUARE_APP_ID
 - SQUARE_LOCATION_ID=REPLACE_WITH_YOUR_SQUARE_LOCATION_ID
 - SQUARE_CURRENCY=USD
+
+Payment mode options:
+- PAYMENT_PROVIDER_MODE=mock
+  Safe test mode. No real card and no real charge.
+- PAYMENT_PROVIDER_MODE=square
+  Real Square flow. Requires valid Square credentials.
+
+Payment provider folders:
+- server/services/payments/mock/
+  Test-only payment provider
+- server/services/payments/square/
+  Real Square provider
+- server/services/payments/index.js
+  Provider selector used by the app
+
+Future cleanup:
+- To remove test payments later, delete server/services/payments/mock/
+- Keep PAYMENT_PROVIDER_MODE=square
+- Leave server/services/payments/square/ as the only real provider
 
 Setup steps:
 1. Run: npm install
@@ -49,7 +69,8 @@ Backend command:
 Booking behavior:
 - The booking fee comes from the pricing table in the admin area
 - Exactly one pricing item must be marked as the required booking fee
-- If booking fee is active and Square is not configured, online booking is disabled
+- In mock mode, booking uses a simulated approved payment
+- In square mode, booking requires valid Square credentials
 
 Admin pricing notes:
 - Open /admin
