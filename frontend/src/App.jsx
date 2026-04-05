@@ -74,6 +74,12 @@ function App() {
     date: "",
     time: ""
   });
+  const [mockCard, setMockCard] = useState({
+    cardholder: "Test Customer",
+    number: "4111 1111 1111 1111",
+    expiry: "12/34",
+    cvv: "123"
+  });
   const [message, setMessage] = useState({ text: "", type: "success" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentStatusText, setPaymentStatusText] = useState("Loading Square payment setup...");
@@ -236,6 +242,15 @@ function App() {
     }));
   };
 
+  const handleMockCardChange = (event) => {
+    const { name, value } = event.target;
+
+    setMockCard((current) => ({
+      ...current,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -272,7 +287,8 @@ function App() {
         },
         body: JSON.stringify({
           ...formData,
-          sourceId
+          sourceId,
+          mockCard: squareConfig?.paymentMode === "mock" ? mockCard : undefined
         })
       });
       const result = await response.json();
@@ -288,6 +304,12 @@ function App() {
         email: "",
         date: "",
         time: ""
+      });
+      setMockCard({
+        cardholder: "Test Customer",
+        number: "4111 1111 1111 1111",
+        expiry: "12/34",
+        cvv: "123"
       });
       setAvailableTimes([]);
       setTimePlaceholder("Select a date first");
@@ -440,7 +462,24 @@ function App() {
                       <div className="square-card" ref={cardContainerRef} />
                     ) : (
                       <div className="square-card square-card--mock">
-                        Test payment mode is on. No real card is required and no real charge will be sent.
+                        <div className="mock-card-grid">
+                          <div className="field">
+                            <label htmlFor="mockCardholder">Cardholder Name</label>
+                            <input id="mockCardholder" name="cardholder" type="text" value={mockCard.cardholder} onChange={handleMockCardChange} />
+                          </div>
+                          <div className="field field--full">
+                            <label htmlFor="mockCardNumber">Test Card Number</label>
+                            <input id="mockCardNumber" name="number" type="text" inputMode="numeric" value={mockCard.number} onChange={handleMockCardChange} />
+                          </div>
+                          <div className="field">
+                            <label htmlFor="mockCardExpiry">Expiry</label>
+                            <input id="mockCardExpiry" name="expiry" type="text" placeholder="MM/YY" value={mockCard.expiry} onChange={handleMockCardChange} />
+                          </div>
+                          <div className="field">
+                            <label htmlFor="mockCardCvv">CVV</label>
+                            <input id="mockCardCvv" name="cvv" type="text" inputMode="numeric" value={mockCard.cvv} onChange={handleMockCardChange} />
+                          </div>
+                        </div>
                       </div>
                     )}
                     <p className="payment-status">{paymentStatusText}</p>

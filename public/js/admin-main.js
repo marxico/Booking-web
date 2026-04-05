@@ -1,8 +1,16 @@
 import { ensureAdminSession, redirectToAdminLogin } from "./admin-auth.js";
 import {
+  adminCalendar,
+  adminCalendarLabel,
+  adminCalendarNextButton,
+  adminCalendarPrevButton,
+  adminCalendarTodayButton,
   adminAppointmentsList,
   adminClearAllButton,
+  adminHistoryContent,
   adminHistoryList,
+  adminHistoryPanel,
+  adminHistoryToggleButton,
   adminLogoutButton,
   adminPricingForm,
   adminPricingList,
@@ -22,6 +30,11 @@ const paymentLabels = {
   paid: "Paid",
   not_required: "Not required"
 };
+
+let currentAppointments = [];
+let currentHistory = [];
+let currentCalendarDate = new Date();
+let isHistoryExpanded = false;
 
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
@@ -51,8 +64,11 @@ const parseAdminResponse = async (response, fallbackMessage) => {
 };
 
 const renderAppointments = (appointments) => {
+  currentAppointments = appointments;
+
   if (!appointments.length) {
     adminAppointmentsList.innerHTML = '<p class="empty-state">No service requests yet.</p>';
+    renderCalendar();
     return;
   }
 
@@ -80,9 +96,13 @@ const renderAppointments = (appointments) => {
       </div>
     </article>
   `).join("");
+
+  renderCalendar();
 };
 
 const renderHistory = (historyItems) => {
+  currentHistory = historyItems;
+
   if (!historyItems.length) {
     adminHistoryList.innerHTML = '<p class="empty-state">No archived Lawson requests yet.</p>';
     return;
@@ -107,8 +127,91 @@ const renderHistory = (historyItems) => {
         <p><strong>Archived action:</strong> ${item.action}</p>
         <p><strong>Saved on:</strong> ${new Date(item.recorded_at).toLocaleString()}</p>
       </div>
+      <div class="admin-card__actions">
+        <button class="btn btn-secondary admin-history-action" type="button" data-history-id="${item.id}">Restore Appointment</button>
+      </div>
     </article>
   `).join("");
+};
+
+const renderCalendar = () => {
+  const monthStart = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), 1);
+  const monthEnd = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 0);
+  const startOffset = (monthStart.getDay() + 6) % 7;
+  const daysInMonth = monthEnd.getDate();
+  const leadingDays = Array.from({ length: startOffset }, (_, index) => ({
+    type: "empty",
+    key: `empty-start-${index}`
+  }));
+  const days = Array.from({ length: daysInMonth }, (_, index) => {
+    const dayNumber = index + 1;
+    const isoDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), dayNumber)
+      .toLocaleDateString("en-CA");
+    const appointments = currentAppointments.filter((appointment) => appointment.date === isoDate);
+
+    return {
+      type: "day",
+      key: isoDate,
+      isoDate,
+      dayNumber,
+      appointments
+    };
+  });
+  const totalCells = leadingDays.length + days.length;
+  const trailingCount = (7 - (totalCells % 7)) % 7;
+  const trailingDays = Array.from({ length: trailingCount }, (_, index) => ({
+    type: "empty",
+    key: `empty-end-${index}`
+  }));
+
+  adminCalendarLabel.textContent = currentCalendarDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric"
+  });
+
+  adminCalendar.innerHTML = `
+    <div class="admin-calendar__weekdays">
+      <span>Mon</span>
+      <span>Tue</span>
+      <span>Wed</span>
+      <span>Thu</span>
+      <span>Fri</span>
+      <span>Sat</span>
+      <span>Sun</span>
+    </div>
+    <div class="admin-calendar__grid">
+      ${[...leadingDays, ...days, ...trailingDays].map((entry) => {
+        if (entry.type === "empty") {
+          return '<article class="admin-calendar__day admin-calendar__day--empty"></article>';
+        }
+
+        return `
+          <article class="admin-calendar__day">
+            <div class="admin-calendar__day-header">
+              <strong>${entry.dayNumber}</strong>
+              <span>${entry.appointments.length ? `${entry.appointments.length} booked` : "Open"}</span>
+            </div>
+            <div class="admin-calendar__appointments">
+              ${entry.appointments.length ? entry.appointments.map((appointment) => `
+                <div class="admin-calendar__appointment">
+                  <strong>${appointment.time}</strong>
+                  <span>${escapeHtml(appointment.name)}</span>
+                </div>
+              `).join("") : '<p class="empty-state">No appointments</p>'}
+            </div>
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
+};
+
+const setHistoryExpanded = (expanded) => {
+  isHistoryExpanded = expanded;
+  adminHistoryPanel.classList.toggle("is-collapsed", !expanded);
+  adminHistoryContent.hidden = !expanded;
+  adminHistoryToggleButton.setAttribute("aria-expanded", expanded ? "true" : "false");
+  adminHistoryToggleButton.textContent = expanded ? "Hide History" : "Show History";
 };
 
 const renderPricing = (pricingItems) => {
@@ -259,6 +362,25 @@ adminRefreshButton.addEventListener("click", () => {
   loadAdminPricing();
 });
 
+adminCalendarPrevButton.addEventListener("click", () => {
+  currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1, 1);
+  renderCalendar();
+});
+
+adminCalendarTodayButton.addEventListener("click", () => {
+  currentCalendarDate = new Date();
+  renderCalendar();
+});
+
+adminCalendarNextButton.addEventListener("click", () => {
+  currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 1);
+  renderCalendar();
+});
+
+adminHistoryToggleButton.addEventListener("click", () => {
+  setHistoryExpanded(!isHistoryExpanded);
+});
+
 adminClearAllButton.addEventListener("click", async () => {
   const confirmed = window.confirm("Clear all active Lawson requests and save them to history?");
 
@@ -315,6 +437,42 @@ adminAppointmentsList.addEventListener("click", async (event) => {
   }
 
   await updateAppointmentStatus(actionButton);
+});
+
+adminHistoryList.addEventListener("click", async (event) => {
+  const restoreButton = event.target.closest(".admin-history-action");
+
+  if (!restoreButton) {
+    return;
+  }
+
+  const originalLabel = restoreButton.textContent;
+  restoreButton.disabled = true;
+  restoreButton.textContent = "Restoring...";
+
+  try {
+    const response = await fetch(`/admin/appointments/history/${restoreButton.dataset.historyId}/restore`, {
+      method: "POST",
+      credentials: "same-origin"
+    });
+    const result = await parseAdminResponse(response, "Could not restore appointment.");
+
+    if (!result) {
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || "Could not restore appointment.");
+    }
+
+    adminStatus.textContent = result.message;
+    await loadAdminAppointments();
+    await loadAdminHistory();
+  } catch (error) {
+    adminStatus.textContent = error.message;
+    restoreButton.disabled = false;
+    restoreButton.textContent = originalLabel;
+  }
 });
 
 adminPricingForm.addEventListener("submit", async (event) => {
@@ -377,6 +535,8 @@ const initializeAdminDashboard = async () => {
   loadAdminAppointments();
   loadAdminHistory();
   loadAdminPricing();
+  renderCalendar();
+  setHistoryExpanded(false);
 };
 
 initializeAdminDashboard();

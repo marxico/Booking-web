@@ -471,11 +471,17 @@ section {
 }
 
 .square-card--mock {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   color: var(--muted);
-  text-align: center;
+}
+
+.mock-card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.field--full {
+  grid-column: 1 / -1;
 }
 
 .success-message {

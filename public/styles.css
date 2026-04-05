@@ -663,6 +663,14 @@ section {
   margin-bottom: 1.5rem;
 }
 
+.admin-panel__content {
+  display: block;
+}
+
+.admin-panel--history.is-collapsed .admin-panel__content {
+  display: none;
+}
+
 .admin-panel__header {
   display: flex;
   flex-wrap: wrap;
@@ -733,6 +741,73 @@ section {
 .pricing-check input {
   width: 18px;
   height: 18px;
+}
+
+.admin-calendar {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-calendar__weekdays,
+.admin-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.admin-calendar__weekdays span {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.admin-calendar__day {
+  min-height: 180px;
+  padding: 0.95rem;
+  border-radius: 20px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.04);
+}
+
+.admin-calendar__day--empty {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+}
+
+.admin-calendar__day-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.84rem;
+}
+
+.admin-calendar__day-header strong {
+  font-size: 1rem;
+}
+
+.admin-calendar__day-header span {
+  color: var(--muted);
+}
+
+.admin-calendar__appointments {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-calendar__appointment {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 14px;
+  background: rgba(243, 198, 0, 0.12);
+}
+
+.admin-calendar__appointment span {
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .admin-login-form {
@@ -973,6 +1048,11 @@ footer {
   .admin-card__header,
   .admin-panel__header {
     align-items: flex-start;
+  }
+
+  .admin-calendar__weekdays,
+  .admin-calendar__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
