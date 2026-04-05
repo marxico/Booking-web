@@ -36,14 +36,35 @@
           <div class="admin-list" id="adminAppointmentsList"></div>
         </div>
 
-        <div class="admin-panel admin-panel--history">
+        <div class="admin-panel">
+          <div class="admin-panel__header">
+            <div>
+              <h2>Calendar View</h2>
+              <p>Scan upcoming appointments by month, just like a lightweight scheduling board.</p>
+            </div>
+            <div class="admin-panel__actions">
+              <button class="btn btn-secondary" id="adminCalendarPrevButton" type="button">Previous</button>
+              <button class="btn btn-secondary" id="adminCalendarTodayButton" type="button">Today</button>
+              <button class="btn btn-secondary" id="adminCalendarNextButton" type="button">Next</button>
+            </div>
+          </div>
+          <div class="admin-status" id="adminCalendarLabel" aria-live="polite"></div>
+          <div class="admin-calendar" id="adminCalendar"></div>
+        </div>
+
+        <div class="admin-panel admin-panel--history is-collapsed" id="adminHistoryPanel">
           <div class="admin-panel__header">
             <div>
               <h2>Request History</h2>
               <p>Cleared requests stay here as a permanent record for reference.</p>
             </div>
+            <div class="admin-panel__actions">
+              <button class="btn btn-secondary" id="adminHistoryToggleButton" type="button" aria-expanded="false">Show History</button>
+            </div>
           </div>
-          <div class="admin-list" id="adminHistoryList"></div>
+          <div class="admin-panel__content" id="adminHistoryContent">
+            <div class="admin-list" id="adminHistoryList"></div>
+          </div>
         </div>
 
         <div class="admin-panel">

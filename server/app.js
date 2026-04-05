@@ -55,7 +55,40 @@ const getAppointmentBySlot = (date, time) => get(
   [date, time]
 );
 
-const createBooking = async ({ name, phone, email, date, time, sourceId }) => {
+const validateMockCard = (mockCard) => {
+  if (!isMockMode) {
+    return null;
+  }
+
+  if (!mockCard) {
+    return 'Mock card details are required in test payment mode';
+  }
+
+  const cardholder = String(mockCard.cardholder || '').trim();
+  const number = String(mockCard.number || '').replace(/\D/g, '');
+  const expiry = String(mockCard.expiry || '').trim();
+  const cvv = String(mockCard.cvv || '').replace(/\D/g, '');
+
+  if (!cardholder) {
+    return 'Cardholder name is required for the test card';
+  }
+
+  if (number.length < 12 || number.length > 19) {
+    return 'Enter a valid test card number';
+  }
+
+  if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+    return 'Enter the expiry date as MM/YY';
+  }
+
+  if (cvv.length < 3 || cvv.length > 4) {
+    return 'Enter a valid test CVV';
+  }
+
+  return null;
+};
+
+const createBooking = async ({ name, phone, email, date, time, sourceId, mockCard }) => {
   const bookingFee = await getBookingFee();
 
   if (!name || !phone || !email || !date || !time) {
@@ -72,6 +105,14 @@ const createBooking = async ({ name, phone, email, date, time, sourceId }) => {
 
   if (bookingFee.priceCents > 0 && paymentMode === 'square' && !sourceId) {
     const error = new Error('Payment is required before this appointment can be reserved');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const mockCardError = validateMockCard(mockCard);
+
+  if (mockCardError) {
+    const error = new Error(mockCardError);
     error.statusCode = 400;
     throw error;
   }
@@ -251,6 +292,84 @@ app.get('/admin/appointments/history', requireAdminAuth, async (req, res) => {
     res.json({ history });
   } catch (error) {
     res.status(500).json({ error: mapDatabaseError(error, 'Error loading Lawson request history') });
+  }
+});
+
+app.post('/admin/appointments/history/:id/restore', requireAdminAuth, async (req, res) => {
+  try {
+    const historyItem = await get(
+      `SELECT id, appointment_id, name, phone, email, date, time, status, payment_status,
+              payment_amount_cents, square_payment_id, square_order_id
+       FROM appointment_history
+       WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (!historyItem) {
+      return res.status(404).json({ error: 'History item not found' });
+    }
+
+    const existingAppointment = await getAppointmentBySlot(historyItem.date, historyItem.time);
+
+    if (existingAppointment) {
+      return res.status(400).json({ error: 'Cannot restore this request because that time slot is already occupied.' });
+    }
+
+    await run('BEGIN TRANSACTION');
+
+    try {
+      const restoredStatus = appointmentStatuses.includes(historyItem.status) ? historyItem.status : 'pending';
+
+      await run(
+        `INSERT INTO appointments
+         (name, phone, email, date, time, status, payment_status, payment_amount_cents, square_payment_id, square_order_id, square_receipt_url, booking_source)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          historyItem.name,
+          historyItem.phone,
+          historyItem.email,
+          historyItem.date,
+          historyItem.time,
+          restoredStatus,
+          historyItem.payment_status || 'not_required',
+          historyItem.payment_amount_cents || 0,
+          historyItem.square_payment_id || null,
+          historyItem.square_order_id || null,
+          null,
+          'restored'
+        ]
+      );
+
+      await run(
+        `INSERT INTO appointment_history
+         (appointment_id, name, phone, email, date, time, status, payment_status, payment_amount_cents, square_payment_id, square_order_id, action, recorded_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          historyItem.appointment_id,
+          historyItem.name,
+          historyItem.phone,
+          historyItem.email,
+          historyItem.date,
+          historyItem.time,
+          restoredStatus,
+          historyItem.payment_status || 'not_required',
+          historyItem.payment_amount_cents || 0,
+          historyItem.square_payment_id || null,
+          historyItem.square_order_id || null,
+          'restored',
+          new Date().toISOString()
+        ]
+      );
+
+      await run('COMMIT');
+    } catch (error) {
+      await run('ROLLBACK');
+      throw error;
+    }
+
+    res.json({ message: `Restored ${historyItem.name}'s appointment for ${historyItem.date} at ${historyItem.time}.` });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Could not restore the archived appointment') });
   }
 });
 
