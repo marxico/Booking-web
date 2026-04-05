@@ -7,9 +7,9 @@
   --line: rgba(23, 24, 26, 0.08);
   --shadow: 0 18px 40px rgba(32, 29, 25, 0.08);
   --shadow-hover: 0 24px 55px rgba(32, 29, 25, 0.12);
-  --accent: #d86f2d;
+  --accent: #f3c600;
   --accent-dark: #111111;
-  --accent-soft: linear-gradient(135deg, #f6dfd2 0%, #f4ebe3 55%, #ffffff 100%);
+  --accent-soft: linear-gradient(135deg, #fff0a8 0%, #f8eed1 55%, #ffffff 100%);
   --radius-lg: 28px;
   --radius-md: 20px;
   --radius-sm: 14px;
@@ -30,7 +30,7 @@ body {
   font-family: "SF Pro Display", "SF Pro Text", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top, rgba(216, 111, 45, 0.14), transparent 28%),
+    radial-gradient(circle at top, rgba(243, 198, 0, 0.18), transparent 28%),
     linear-gradient(180deg, #fbfaf7 0%, #f2efe8 45%, #ece8df 100%);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -87,6 +87,35 @@ select {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.brand--logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand__mark {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.12);
+  background: #f3c600;
+}
+
+.brand__text {
+  display: grid;
+  gap: 0.02rem;
+  line-height: 1;
+}
+
+.brand__text strong {
+  font-size: 1rem;
+}
+
+.brand__text span {
+  font-size: 0.84rem;
+  color: var(--muted);
 }
 
 .nav-links {
@@ -154,8 +183,8 @@ section {
   border-radius: 999px;
   font-size: 0.82rem;
   letter-spacing: 0.02em;
-  color: #8a471c;
-  background: rgba(216, 111, 45, 0.12);
+  color: #6e5700;
+  background: rgba(243, 198, 0, 0.18);
 }
 
 .hero-copy {
@@ -201,9 +230,28 @@ section {
   box-shadow: var(--shadow);
 }
 
+.hero-card--logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 188px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(249, 242, 210, 0.88) 100%);
+}
+
 .hero-card--accent {
   background: linear-gradient(135deg, rgba(23, 24, 26, 0.98) 0%, rgba(70, 41, 22, 0.95) 100%);
   color: #ffffff;
+}
+
+.hero-logo,
+.admin-logo {
+  display: block;
+  width: min(100%, 210px);
+  height: auto;
+  border-radius: 22px;
+  box-shadow: 0 18px 40px rgba(17, 17, 17, 0.16);
+  background: #f3c600;
 }
 
 .hero-card__label {
@@ -338,8 +386,8 @@ section {
 .field input:focus,
 .field select:focus {
   outline: none;
-  border-color: rgba(216, 111, 45, 0.55);
-  box-shadow: 0 0 0 4px rgba(216, 111, 45, 0.12);
+  border-color: rgba(243, 198, 0, 0.62);
+  box-shadow: 0 0 0 4px rgba(243, 198, 0, 0.18);
   transform: translateY(-1px);
 }
 
@@ -384,7 +432,7 @@ section {
   font-size: 0.78rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #8a471c;
+  color: #6e5700;
 }
 
 .info-card h3 {
@@ -422,7 +470,7 @@ section {
   width: 210px;
   height: 210px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(216, 111, 45, 0.24), transparent 70%);
+  background: radial-gradient(circle, rgba(243, 198, 0, 0.28), transparent 70%);
 }
 
 .promo-label {
@@ -431,7 +479,7 @@ section {
   padding: 0.38rem 0.75rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.66);
-  color: #8a471c;
+  color: #6e5700;
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -506,6 +554,11 @@ section {
 
 .admin-hero__content {
   max-width: 760px;
+}
+
+.admin-logo {
+  margin-bottom: 1rem;
+  width: min(100%, 170px);
 }
 
 .admin-hero__content h1 {

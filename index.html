@@ -9,7 +9,13 @@
 <body>
   <header class="site-header" id="siteHeader">
     <div class="nav-shell">
-      <a class="brand" href="#home">Lawson Mobile Mechanic</a>
+      <a class="brand brand--logo" href="#home" aria-label="Lawson Mobile Mechanic home">
+        <img class="brand__mark" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
+        <span class="brand__text">
+          <strong>Lawson</strong>
+          <span>Mobile Mechanic</span>
+        </span>
+      </a>
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#home" class="active">Home</a>
         <a href="#appointment">Book Appointment</a>
@@ -34,10 +40,14 @@
         </div>
 
         <div class="hero-grid reveal">
+          <article class="hero-card hero-card--logo">
+            <img class="hero-logo" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
+          </article>
+
           <article class="hero-card hero-card--accent">
             <span class="hero-card__label">Coverage</span>
-            <h2>Fort Novosel and surrounding Alabama communities</h2>
-            <p>Dothan, Daleville, Ozark, Level Plains, Enterprise, and nearby areas.</p>
+            <h2>Memphis, Tennessee and surrounding communities</h2>
+            <p>Mobile mechanic service across Memphis and nearby neighborhoods throughout the Mid-South area.</p>
           </article>
 
           <article class="hero-card">
@@ -164,8 +174,8 @@
               <span class="service-tag">Coverage</span>
               <span class="price">Local</span>
             </div>
-            <h3>Fort Novosel Area</h3>
-            <p>Serving Fort Novosel, Dothan, Daleville, Ozark, Enterprise, and nearby communities with mobile convenience.</p>
+            <h3>Memphis Area Coverage</h3>
+            <p>Serving Memphis, Tennessee with mobile convenience for drivers who need reliable service where they are.</p>
             <a class="service-link" href="#appointment">Check availability</a>
           </article>
 

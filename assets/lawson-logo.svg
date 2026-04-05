@@ -1,0 +1,35 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#111111" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="1200" fill="#232323"/>
+  <circle cx="600" cy="600" r="590" fill="#F8CC0A"/>
+
+  <g filter="url(#shadow)">
+    <rect x="430" y="372" width="73" height="240" fill="#FFFFFF"/>
+    <rect x="430" y="372" width="73" height="240" fill="#111111" opacity="0.08"/>
+    <path d="M447 389H495V553H553V612H447V389Z" fill="#111111"/>
+
+    <rect x="502" y="346" width="79" height="196" fill="#FFFFFF"/>
+    <rect x="502" y="346" width="79" height="196" fill="#111111" opacity="0.08"/>
+    <path d="M519 363H573L592 472V363H638V606H592L565 455V606H519V363Z" fill="#111111"/>
+
+    <rect x="581" y="346" width="79" height="196" fill="#FFFFFF"/>
+    <rect x="581" y="346" width="79" height="196" fill="#111111" opacity="0.08"/>
+    <path d="M598 363H652L671 472V363H717V606H671L644 455V606H598V363Z" fill="#111111"/>
+
+    <rect x="660" y="346" width="79" height="196" fill="#FFFFFF"/>
+    <rect x="660" y="346" width="79" height="196" fill="#111111" opacity="0.08"/>
+    <path d="M677 363H731L750 472V363H796V606H750L723 455V606H677V363Z" fill="#111111"/>
+
+    <path d="M321 451C300 451 283 458 272 470L247 496L225 492L209 505L235 528L222 560L262 573L358 521H522V441H358L262 389L222 402L235 434L209 457L225 470L247 466L272 492C283 504 300 511 321 511H365V451H321Z" fill="#111111"/>
+    <path d="M879 451C900 451 917 458 928 470L953 496L975 492L991 505L965 528L978 560L938 573L842 521H678V441H842L938 389L978 402L965 434L991 457L975 470L953 466L928 492C917 504 900 511 879 511H835V451H879Z" fill="#111111"/>
+  </g>
+
+  <text x="600" y="770" text-anchor="middle" fill="#111111" font-family="Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif" font-size="84" letter-spacing="1">
+    LAWSON MOBILE MECHANIC LLC
+  </text>
+</svg>
