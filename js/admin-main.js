@@ -14,6 +14,26 @@ const statusLabels = {
   canceled: "Canceled"
 };
 
+const parseAdminResponse = async (response, fallbackMessage) => {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (response.redirected || response.url.includes("/admin-login")) {
+    redirectToAdminLogin();
+    return null;
+  }
+
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  if (response.status === 401) {
+    redirectToAdminLogin();
+    return null;
+  }
+
+  throw new Error(fallbackMessage);
+};
+
 const renderAppointments = (appointments) => {
   if (!appointments.length) {
     adminAppointmentsList.innerHTML = '<p class="empty-state">No service requests yet.</p>';
@@ -31,6 +51,7 @@ const renderAppointments = (appointments) => {
       </div>
       <div class="admin-card__body">
         <p><strong>Name:</strong> ${appointment.name}</p>
+        <p><strong>Phone:</strong> ${appointment.phone || "Not provided"}</p>
         <p><strong>Email:</strong> ${appointment.email}</p>
       </div>
       <div class="admin-card__actions">
@@ -58,6 +79,7 @@ const renderHistory = (historyItems) => {
       </div>
       <div class="admin-card__body">
         <p><strong>Name:</strong> ${item.name}</p>
+        <p><strong>Phone:</strong> ${item.phone || "Not provided"}</p>
         <p><strong>Email:</strong> ${item.email}</p>
         <p><strong>Archived action:</strong> ${item.action}</p>
         <p><strong>Saved on:</strong> ${new Date(item.recorded_at).toLocaleString()}</p>
@@ -71,10 +93,9 @@ const loadAdminAppointments = async () => {
 
   try {
     const response = await fetch("/admin/appointments");
-    const result = await response.json();
+    const result = await parseAdminResponse(response, "Could not load service requests.");
 
-    if (response.status === 401) {
-      redirectToAdminLogin();
+    if (!result) {
       return;
     }
 
@@ -95,10 +116,9 @@ const loadAdminHistory = async () => {
     const response = await fetch("/admin/appointments/history", {
       credentials: "same-origin"
     });
-    const result = await response.json();
+    const result = await parseAdminResponse(response, "Could not load request history.");
 
-    if (response.status === 401) {
-      redirectToAdminLogin();
+    if (!result) {
       return;
     }
 
@@ -129,10 +149,9 @@ const updateAppointmentStatus = async (button) => {
       credentials: "same-origin",
       body: JSON.stringify({ status })
     });
-    const result = await response.json();
+    const result = await parseAdminResponse(response, "Could not update service request.");
 
-    if (response.status === 401) {
-      redirectToAdminLogin();
+    if (!result) {
       return;
     }
 
@@ -170,10 +189,9 @@ adminClearAllButton.addEventListener("click", async () => {
       method: "POST",
       credentials: "same-origin"
     });
-    const result = await response.json();
+    const result = await parseAdminResponse(response, "Could not clear requests.");
 
-    if (response.status === 401) {
-      redirectToAdminLogin();
+    if (!result) {
       return;
     }
 

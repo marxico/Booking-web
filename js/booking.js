@@ -21,6 +21,7 @@ export const initializeBooking = () => {
 
     const formData = new FormData(form);
     const name = formData.get("name");
+    const phone = formData.get("phone");
     const email = formData.get("email");
     const date = formData.get("date");
     const time = formData.get("time");
@@ -31,7 +32,7 @@ export const initializeBooking = () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ name, email, date, time })
+        body: JSON.stringify({ name, phone, email, date, time })
       });
 
       const result = await response.json();

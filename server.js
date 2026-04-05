@@ -177,13 +177,19 @@ const ensureAppointmentsSchema = async () => {
   await runQuery(`CREATE TABLE IF NOT EXISTS appointments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
+    phone TEXT NOT NULL DEFAULT '',
     email TEXT NOT NULL,
     date TEXT NOT NULL,
     time TEXT NOT NULL
   )`);
 
   const columns = await allQuery('PRAGMA table_info(appointments)');
+  const hasPhoneColumn = columns.some((column) => column.name === 'phone');
   const hasStatusColumn = columns.some((column) => column.name === 'status');
+
+  if (!hasPhoneColumn) {
+    await runQuery("ALTER TABLE appointments ADD COLUMN phone TEXT NOT NULL DEFAULT ''");
+  }
 
   if (!hasStatusColumn) {
     await runQuery("ALTER TABLE appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
@@ -193,6 +199,7 @@ const ensureAppointmentsSchema = async () => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     appointment_id INTEGER,
     name TEXT NOT NULL,
+    phone TEXT NOT NULL DEFAULT '',
     email TEXT NOT NULL,
     date TEXT NOT NULL,
     time TEXT NOT NULL,
@@ -200,10 +207,17 @@ const ensureAppointmentsSchema = async () => {
     action TEXT NOT NULL,
     recorded_at TEXT NOT NULL
   )`);
+
+  const historyColumns = await allQuery('PRAGMA table_info(appointment_history)');
+  const hasHistoryPhoneColumn = historyColumns.some((column) => column.name === 'phone');
+
+  if (!hasHistoryPhoneColumn) {
+    await runQuery("ALTER TABLE appointment_history ADD COLUMN phone TEXT NOT NULL DEFAULT ''");
+  }
 };
 
-const validateAppointmentPayload = ({ name, email, date, time }) => {
-  if (!name || !email || !date || !time) {
+const validateAppointmentPayload = ({ name, phone, email, date, time }) => {
+  if (!name || !phone || !email || !date || !time) {
     return 'All booking fields are required';
   }
 
@@ -261,8 +275,8 @@ app.post('/admin/logout', (req, res) => {
 });
 
 app.post('/book', (req, res) => {
-  const { name, email, date, time } = req.body;
-  const validationError = validateAppointmentPayload({ name, email, date, time });
+  const { name, phone, email, date, time } = req.body;
+  const validationError = validateAppointmentPayload({ name, phone, email, date, time });
 
   if (validationError) {
     return res.status(400).json({ error: validationError });
@@ -281,8 +295,8 @@ app.post('/book', (req, res) => {
       }
 
       db.run(
-        'INSERT INTO appointments (name, email, date, time, status) VALUES (?, ?, ?, ?, ?)',
-        [name, email, date, time, 'pending'],
+        'INSERT INTO appointments (name, phone, email, date, time, status) VALUES (?, ?, ?, ?, ?, ?)',
+        [name, phone, email, date, time, 'pending'],
         function(insertError) {
           if (insertError) {
             return res.status(500).json({ error: mapDatabaseError(insertError, 'Error saving the Lawson booking request') });
@@ -299,7 +313,7 @@ app.post('/book', (req, res) => {
 
 app.get('/admin/appointments', requireAdminAuth, (req, res) => {
   db.all(
-    'SELECT id, name, email, date, time, status FROM appointments ORDER BY date ASC, time ASC, id ASC',
+    'SELECT id, name, phone, email, date, time, status FROM appointments ORDER BY date ASC, time ASC, id ASC',
     [],
     (err, rows) => {
       if (err) {
@@ -313,7 +327,7 @@ app.get('/admin/appointments', requireAdminAuth, (req, res) => {
 
 app.get('/admin/appointments/history', requireAdminAuth, (req, res) => {
   db.all(
-    `SELECT id, appointment_id, name, email, date, time, status, action, recorded_at
+    `SELECT id, appointment_id, name, phone, email, date, time, status, action, recorded_at
      FROM appointment_history
      ORDER BY recorded_at DESC, id DESC
      LIMIT 100`,
@@ -332,7 +346,7 @@ app.post('/admin/appointments/clear', requireAdminAuth, async (req, res) => {
   try {
     const appointments = await new Promise((resolve, reject) => {
       db.all(
-        'SELECT id, name, email, date, time, status FROM appointments ORDER BY date ASC, time ASC, id ASC',
+        'SELECT id, name, phone, email, date, time, status FROM appointments ORDER BY date ASC, time ASC, id ASC',
         [],
         (err, rows) => {
           if (err) {
@@ -357,11 +371,12 @@ app.post('/admin/appointments/clear', requireAdminAuth, async (req, res) => {
       for (const appointment of appointments) {
         await runStatement(
           `INSERT INTO appointment_history
-           (appointment_id, name, email, date, time, status, action, recorded_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+           (appointment_id, name, phone, email, date, time, status, action, recorded_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             appointment.id,
             appointment.name,
+            appointment.phone,
             appointment.email,
             appointment.date,
             appointment.time,
