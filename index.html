@@ -3,17 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modern Tech Solutions</title>
+  <title>Lawson Mobile Mechanic</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header" id="siteHeader">
     <div class="nav-shell">
-      <a class="brand" href="#home">Auralis Tech</a>
+      <a class="brand brand--logo" href="#home" aria-label="Lawson Mobile Mechanic home">
+        <img class="brand__mark" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
+        <span class="brand__text">
+          <strong>Lawson</strong>
+          <span>Mobile Mechanic</span>
+        </span>
+      </a>
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#home" class="active">Home</a>
         <a href="#appointment">Book Appointment</a>
-        <a href="#services">Services &amp; Promotions</a>
+        <a href="#services">Services</a>
       </nav>
     </div>
   </header>
@@ -22,15 +28,39 @@
     <section class="hero" id="home">
       <div class="container hero-panel">
         <div class="hero-copy">
-          <span class="eyebrow">Precision support for modern teams</span>
-          <h1>Modern Tech Solutions</h1>
+          <span class="eyebrow">Mobile auto repair with a premium touch</span>
+          <h1>Lawson Mobile Mechanic</h1>
           <p>
-            Thoughtful consulting, premium support, and clear next steps for businesses that want technology to feel effortless.
+            Honest diagnostics, dependable repairs, and on-site service built for drivers who want expert help without the shop hassle.
           </p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#appointment">Book a Call</a>
+            <a class="btn btn-primary" href="#appointment">Book Service</a>
             <a class="btn btn-secondary" href="#services">Explore Services</a>
           </div>
+        </div>
+
+        <div class="hero-grid reveal">
+          <article class="hero-card hero-card--logo">
+            <img class="hero-logo" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
+          </article>
+
+          <article class="hero-card hero-card--accent">
+            <span class="hero-card__label">Coverage</span>
+            <h2>Memphis, Tennessee and surrounding communities</h2>
+            <p>Mobile mechanic service across Memphis and nearby neighborhoods throughout the Mid-South area.</p>
+          </article>
+
+          <article class="hero-card">
+            <span class="hero-card__label">Call-Out Fee</span>
+            <h2>$90 diagnostic visit</h2>
+            <p>A straightforward on-site assessment with real next steps and no wasted time.</p>
+          </article>
+
+          <article class="hero-card">
+            <span class="hero-card__label">Approach</span>
+            <h2>Veteran-owned, reliable, and direct</h2>
+            <p>Clean workmanship, clear communication, and repairs handled with confidence.</p>
+          </article>
         </div>
       </div>
     </section>
@@ -39,7 +69,7 @@
       <div class="container">
         <div class="section-heading reveal">
           <h2>Book Appointment</h2>
-          <p>Schedule a focused consultation with a clean, frictionless experience designed to keep the process simple.</p>
+          <p>Choose your preferred date and time, and send a service request directly to Lawson Mobile Mechanic.</p>
         </div>
 
         <div class="appointment-layout reveal">
@@ -66,11 +96,21 @@
                 </div>
               </div>
               <div class="form-footer">
-                <button class="btn btn-primary" type="submit">Confirm Appointment</button>
+                <button class="btn btn-primary" type="submit">Request Appointment</button>
                 <div class="success-message" id="successMessage" aria-live="polite"></div>
               </div>
             </form>
           </div>
+
+          <aside class="info-card">
+            <span class="info-card__eyebrow">What to expect</span>
+            <h3>Convenient service without giving up quality</h3>
+            <ul class="info-list">
+              <li>Mobile repair and maintenance for cars, trucks, SUVs, and selected commercial vehicles.</li>
+              <li>Your time slot stays blocked once requested so other customers cannot grab it.</li>
+              <li>Appointments can later be reviewed, accepted, or canceled from the admin dashboard.</li>
+            </ul>
+          </aside>
         </div>
       </div>
     </section>
@@ -78,44 +118,74 @@
     <section id="services">
       <div class="container services-stack">
         <div class="section-heading reveal">
-          <h2>Services &amp; Promotions</h2>
-          <p>Premium digital support with clean delivery, measurable outcomes, and space for teams to focus on what matters.</p>
+          <h2>Services &amp; Coverage</h2>
+          <p>Mobile mechanic support focused on diagnostics, repairs, maintenance, and dependable local service.</p>
         </div>
 
         <div class="promo-card reveal">
-          <span class="promo-label">Featured Promotion</span>
-          <h3>Spring Strategy Session</h3>
-          <p>Reserve a discovery call this month and receive a complimentary systems audit summary with prioritized recommendations.</p>
+          <span class="promo-label">Trusted Local Service</span>
+          <h3>Built for convenience without sacrificing workmanship</h3>
+          <p>From brakes and batteries to no-start situations and commercial support, the goal is simple: fix the issue right and treat customers well.</p>
         </div>
 
         <div class="services-grid">
           <article class="service-card reveal">
             <div class="service-meta">
-              <span class="service-tag">Consulting</span>
-              <span class="price">$149</span>
+              <span class="service-tag">Diagnostics</span>
+              <span class="price">$90+</span>
             </div>
-            <h3>Tech Advisory Call</h3>
-            <p>One-on-one guidance for roadmap decisions, tooling choices, and practical execution planning.</p>
-            <a class="service-link" href="#appointment">Book now</a>
+            <h3>Mobile Diagnostic Visit</h3>
+            <p>On-site troubleshooting for warning lights, no-start issues, unusual sounds, and hard-to-track mechanical problems.</p>
+            <a class="service-link" href="#appointment">Request service</a>
           </article>
 
           <article class="service-card reveal">
             <div class="service-meta">
-              <span class="service-tag">Optimization</span>
-              <span class="price">$249</span>
+              <span class="service-tag">Maintenance</span>
+              <span class="price">Quote</span>
             </div>
-            <h3>Workflow Audit</h3>
-            <p>Identify bottlenecks, refine team processes, and simplify the day-to-day flow across your stack.</p>
-            <a class="service-link" href="#appointment">Book now</a>
+            <h3>Routine Maintenance</h3>
+            <p>Fluid checks, belts, brakes, batteries, and general upkeep handled where your vehicle already is.</p>
+            <a class="service-link" href="#appointment">Request service</a>
           </article>
 
           <article class="service-card reveal">
             <div class="service-meta">
-              <span class="service-tag">Support</span>
-              <span class="price">$99</span>
+              <span class="service-tag">Fleet</span>
+              <span class="price">Custom</span>
             </div>
-            <h3>Device Setup</h3>
-            <p>White-glove onboarding for laptops, mobile devices, and cloud accounts with a premium support touch.</p>
+            <h3>Commercial Vehicle Support</h3>
+            <p>Work-truck and business vehicle service designed to reduce downtime and keep the schedule moving.</p>
+            <a class="service-link" href="#appointment">Request service</a>
+          </article>
+
+          <article class="service-card reveal">
+            <div class="service-meta">
+              <span class="service-tag">Roadside</span>
+              <span class="price">Fast</span>
+            </div>
+            <h3>Emergency Assistance</h3>
+            <p>Roadside support for battery failures, belt issues, and urgent situations that need a calm, experienced mechanic.</p>
+            <a class="service-link" href="#appointment">Request service</a>
+          </article>
+
+          <article class="service-card reveal">
+            <div class="service-meta">
+              <span class="service-tag">Coverage</span>
+              <span class="price">Local</span>
+            </div>
+            <h3>Memphis Area Coverage</h3>
+            <p>Serving Memphis, Tennessee with mobile convenience for drivers who need reliable service where they are.</p>
+            <a class="service-link" href="#appointment">Check availability</a>
+          </article>
+
+          <article class="service-card reveal">
+            <div class="service-meta">
+              <span class="service-tag">Quality</span>
+              <span class="price">Backed</span>
+            </div>
+            <h3>Confident Repairs</h3>
+            <p>Practical recommendations, quality parts, and a service experience that feels thoughtful from start to finish.</p>
             <a class="service-link" href="#appointment">Book now</a>
           </article>
         </div>
@@ -124,7 +194,7 @@
   </main>
 
   <footer>
-    Crafted for clarity, focus, and a quietly premium digital experience.
+    Lawson Mobile Mechanic. Mobile repair with clear communication, honest work, and premium service standards.
   </footer>
 
   <script type="module" src="script.js"></script>
