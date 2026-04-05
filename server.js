@@ -147,6 +147,20 @@ const allQuery = (query) => new Promise((resolve, reject) => {
   });
 });
 
+const runStatement = (query, params = []) => new Promise((resolve, reject) => {
+  db.run(query, params, function(err) {
+    if (err) {
+      reject(err);
+      return;
+    }
+
+    resolve({
+      changes: this.changes,
+      lastID: this.lastID
+    });
+  });
+});
+
 const ensureAppointmentsSchema = async () => {
   try {
     await runQuery('PRAGMA journal_mode = WAL');
@@ -174,6 +188,18 @@ const ensureAppointmentsSchema = async () => {
   if (!hasStatusColumn) {
     await runQuery("ALTER TABLE appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
   }
+
+  await runQuery(`CREATE TABLE IF NOT EXISTS appointment_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    appointment_id INTEGER,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    date TEXT NOT NULL,
+    time TEXT NOT NULL,
+    status TEXT NOT NULL,
+    action TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+  )`);
 };
 
 const validateAppointmentPayload = ({ name, email, date, time }) => {
@@ -283,6 +309,80 @@ app.get('/admin/appointments', requireAdminAuth, (req, res) => {
       res.json({ appointments: rows });
     }
   );
+});
+
+app.get('/admin/appointments/history', requireAdminAuth, (req, res) => {
+  db.all(
+    `SELECT id, appointment_id, name, email, date, time, status, action, recorded_at
+     FROM appointment_history
+     ORDER BY recorded_at DESC, id DESC
+     LIMIT 100`,
+    [],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: mapDatabaseError(err, 'Error loading Lawson request history') });
+      }
+
+      res.json({ history: rows });
+    }
+  );
+});
+
+app.post('/admin/appointments/clear', requireAdminAuth, async (req, res) => {
+  try {
+    const appointments = await new Promise((resolve, reject) => {
+      db.all(
+        'SELECT id, name, email, date, time, status FROM appointments ORDER BY date ASC, time ASC, id ASC',
+        [],
+        (err, rows) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          resolve(rows);
+        }
+      );
+    });
+
+    if (!appointments.length) {
+      return res.json({ message: 'No Lawson requests to clear.' });
+    }
+
+    await runQuery('BEGIN TRANSACTION');
+
+    try {
+      const recordedAt = new Date().toISOString();
+
+      for (const appointment of appointments) {
+        await runStatement(
+          `INSERT INTO appointment_history
+           (appointment_id, name, email, date, time, status, action, recorded_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            appointment.id,
+            appointment.name,
+            appointment.email,
+            appointment.date,
+            appointment.time,
+            appointment.status,
+            'cleared',
+            recordedAt
+          ]
+        );
+      }
+
+      await runStatement('DELETE FROM appointments');
+      await runQuery('COMMIT');
+    } catch (transactionError) {
+      await runQuery('ROLLBACK');
+      throw transactionError;
+    }
+
+    res.json({ message: `Cleared ${appointments.length} Lawson request(s) and saved them to history.` });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Error clearing Lawson requests') });
+  }
 });
 
 app.patch('/admin/appointments/:id/status', requireAdminAuth, (req, res) => {

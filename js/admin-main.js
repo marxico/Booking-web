@@ -1,5 +1,12 @@
 import { ensureAdminSession, redirectToAdminLogin } from "./admin-auth.js";
-import { adminAppointmentsList, adminLogoutButton, adminRefreshButton, adminStatus } from "./admin-dom.js";
+import {
+  adminAppointmentsList,
+  adminClearAllButton,
+  adminHistoryList,
+  adminLogoutButton,
+  adminRefreshButton,
+  adminStatus
+} from "./admin-dom.js";
 
 const statusLabels = {
   pending: "Pending",
@@ -34,6 +41,31 @@ const renderAppointments = (appointments) => {
   `).join("");
 };
 
+const renderHistory = (historyItems) => {
+  if (!historyItems.length) {
+    adminHistoryList.innerHTML = '<p class="empty-state">No archived Lawson requests yet.</p>';
+    return;
+  }
+
+  adminHistoryList.innerHTML = historyItems.map((item) => `
+    <article class="admin-card admin-card--history">
+      <div class="admin-card__header">
+        <div>
+          <p class="admin-card__date">${item.date}</p>
+          <h3>${item.time}</h3>
+        </div>
+        <span class="status-pill status-pill--${item.status}">${statusLabels[item.status] || item.status}</span>
+      </div>
+      <div class="admin-card__body">
+        <p><strong>Name:</strong> ${item.name}</p>
+        <p><strong>Email:</strong> ${item.email}</p>
+        <p><strong>Archived action:</strong> ${item.action}</p>
+        <p><strong>Saved on:</strong> ${new Date(item.recorded_at).toLocaleString()}</p>
+      </div>
+    </article>
+  `).join("");
+};
+
 const loadAdminAppointments = async () => {
   adminStatus.textContent = "Loading Lawson service requests...";
 
@@ -55,6 +87,28 @@ const loadAdminAppointments = async () => {
   } catch (error) {
     adminAppointmentsList.innerHTML = '<p class="empty-state">Could not load service requests.</p>';
     adminStatus.textContent = error.message;
+  }
+};
+
+const loadAdminHistory = async () => {
+  try {
+    const response = await fetch("/admin/appointments/history", {
+      credentials: "same-origin"
+    });
+    const result = await response.json();
+
+    if (response.status === 401) {
+      redirectToAdminLogin();
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || "Could not load request history.");
+    }
+
+    renderHistory(result.history);
+  } catch (error) {
+    adminHistoryList.innerHTML = '<p class="empty-state">Could not load request history.</p>';
   }
 };
 
@@ -88,6 +142,7 @@ const updateAppointmentStatus = async (button) => {
 
     adminStatus.textContent = result.message;
     await loadAdminAppointments();
+    await loadAdminHistory();
   } catch (error) {
     adminStatus.textContent = error.message;
     button.disabled = false;
@@ -97,6 +152,43 @@ const updateAppointmentStatus = async (button) => {
 
 adminRefreshButton.addEventListener("click", () => {
   loadAdminAppointments();
+  loadAdminHistory();
+});
+
+adminClearAllButton.addEventListener("click", async () => {
+  const confirmed = window.confirm("Clear all active Lawson requests and save them to history?");
+
+  if (!confirmed) {
+    return;
+  }
+
+  adminClearAllButton.disabled = true;
+  adminStatus.textContent = "Clearing Lawson requests...";
+
+  try {
+    const response = await fetch("/admin/appointments/clear", {
+      method: "POST",
+      credentials: "same-origin"
+    });
+    const result = await response.json();
+
+    if (response.status === 401) {
+      redirectToAdminLogin();
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || "Could not clear requests.");
+    }
+
+    adminStatus.textContent = result.message;
+    await loadAdminAppointments();
+    await loadAdminHistory();
+  } catch (error) {
+    adminStatus.textContent = error.message;
+  } finally {
+    adminClearAllButton.disabled = false;
+  }
 });
 
 adminLogoutButton.addEventListener("click", async () => {
@@ -131,6 +223,7 @@ const initializeAdminDashboard = async () => {
   }
 
   loadAdminAppointments();
+  loadAdminHistory();
 };
 
 initializeAdminDashboard();
