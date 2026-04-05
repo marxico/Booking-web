@@ -45,6 +45,22 @@
           </div>
           <div class="admin-list" id="adminHistoryList"></div>
         </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel__header">
+            <div>
+              <h2>Pricing Control</h2>
+              <p>Set booking fees and public-facing prices here. Exactly one item should be marked as the required booking fee.</p>
+            </div>
+          </div>
+          <form class="pricing-form" id="adminPricingForm">
+            <div class="pricing-form__list" id="adminPricingList"></div>
+            <div class="admin-panel__actions">
+              <button class="btn btn-primary" id="adminSavePricingButton" type="submit">Save Pricing</button>
+            </div>
+          </form>
+          <div class="admin-status" id="adminPricingStatus" aria-live="polite"></div>
+        </div>
       </div>
     </section>
   </main>

@@ -1,0 +1,83 @@
+Project setup instructions
+==========================
+
+Branch:
+square
+
+What this project uses:
+- Node.js + Express backend
+- React + Vite public frontend
+- Static admin pages in /public
+- SQLite database
+- Square for required booking payments
+
+Local URLs:
+- Website: http://localhost:3000/
+- Admin: http://localhost:3000/admin
+
+Default admin credentials:
+- Username: admin
+- Password: change-me-admin
+
+Important local files:
+- .env
+- .env.example
+- admin-credentials.txt
+
+Environment variables required for Square:
+- PAYMENT_PROVIDER_MODE=mock
+- SQUARE_ENVIRONMENT=sandbox
+- SQUARE_ACCESS_TOKEN=REPLACE_WITH_YOUR_SQUARE_ACCESS_TOKEN
+- SQUARE_APP_ID=REPLACE_WITH_YOUR_SQUARE_APP_ID
+- SQUARE_LOCATION_ID=REPLACE_WITH_YOUR_SQUARE_LOCATION_ID
+- SQUARE_CURRENCY=USD
+
+Payment mode options:
+- PAYMENT_PROVIDER_MODE=mock
+  Safe test mode. No real card and no real charge.
+- PAYMENT_PROVIDER_MODE=square
+  Real Square flow. Requires valid Square credentials.
+
+Payment provider folders:
+- server/services/payments/mock/
+  Test-only payment provider
+- server/services/payments/square/
+  Real Square provider
+- server/services/payments/index.js
+  Provider selector used by the app
+
+Future cleanup:
+- To remove test payments later, delete server/services/payments/mock/
+- Keep PAYMENT_PROVIDER_MODE=square
+- Leave server/services/payments/square/ as the only real provider
+
+Setup steps:
+1. Run: npm install
+2. Review .env.example
+3. Create or update .env with real Square credentials
+4. Build the React frontend: npm run build
+5. Start the server: npm start
+6. Open the website and admin URLs above
+
+Frontend commands:
+- npm run dev:client
+- npm run build
+
+Backend command:
+- npm start
+
+Booking behavior:
+- The booking fee comes from the pricing table in the admin area
+- Exactly one pricing item must be marked as the required booking fee
+- In mock mode, booking uses a simulated approved payment
+- In square mode, booking requires valid Square credentials
+
+Admin pricing notes:
+- Open /admin
+- Sign in with the admin credentials
+- Use the Pricing Control section to update names, descriptions, prices, and booking fee selection
+
+Safe for Git:
+- This file is safe to upload
+- .env should not be uploaded
+- Replace placeholder Square values only inside your local .env
