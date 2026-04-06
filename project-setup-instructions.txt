@@ -5,8 +5,8 @@ Branch:
 square
 
 What this project uses:
-- Node.js + Express backend
-- React + Vite public frontend
+- Node.js + Express backend with TypeScript runtime
+- React + Vite public frontend with TypeScript entry files
 - Static admin pages in /public
 - SQLite database
 - Square for required booking payments
@@ -43,8 +43,13 @@ Payment provider folders:
   Test-only payment provider
 - server/services/payments/square/
   Real Square provider
-- server/services/payments/index.js
+- server/services/payments/index.ts
   Provider selector used by the app
+
+TypeScript migration notes:
+- The active runtime now starts from server.ts
+- The React app entry now starts from frontend/src/main.tsx
+- Legacy JS files may still exist temporarily during migration, but the active path is TypeScript-based
 
 Future cleanup:
 - To remove test payments later, delete server/services/payments/mock/
@@ -65,6 +70,14 @@ Frontend commands:
 
 Backend command:
 - npm start
+- npm run typecheck
+- npm run logs:backend
+- npm run terminal:backend
+
+Backend logs:
+- The backend writes logs to logs/backend.log
+- Use npm run logs:backend to watch logs in the current terminal
+- Use npm run terminal:backend to open a separate PowerShell window just for backend logs
 
 Booking behavior:
 - The booking fee comes from the pricing table in the admin area

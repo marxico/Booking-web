@@ -11,5 +11,6 @@ module.exports = {
   isSquareMode: paymentMode === 'square',
   paymentEnabled: activeProvider.enabled,
   paymentProviderLabel: activeProvider.providerLabel,
+  mockCards: paymentMode === 'mock' ? mockProvider.mockCards || [] : [],
   createPayment: activeProvider.createPayment
 };

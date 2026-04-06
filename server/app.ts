@@ -109,19 +109,19 @@ const createBooking = async ({ name, phone, email, date, time, sourceId, mockCar
   const bookingFee = await getBookingFee();
 
   if (!name || !phone || !email || !date || !time) {
-    const error = new Error('All booking fields are required');
+    const error = new Error('All booking fields are required') as Error & { statusCode?: number };
     error.statusCode = 400;
     throw error;
   }
 
   if (!allTimes.includes(time)) {
-    const error = new Error('Invalid appointment time');
+    const error = new Error('Invalid appointment time') as Error & { statusCode?: number };
     error.statusCode = 400;
     throw error;
   }
 
   if (bookingFee.priceCents > 0 && paymentMode === 'square' && !sourceId) {
-    const error = new Error('Payment is required before this appointment can be reserved');
+    const error = new Error('Payment is required before this appointment can be reserved') as Error & { statusCode?: number };
     error.statusCode = 400;
     throw error;
   }
@@ -129,7 +129,7 @@ const createBooking = async ({ name, phone, email, date, time, sourceId, mockCar
   const mockCardError = validateMockCard(mockCard);
 
   if (mockCardError) {
-    const error = new Error(mockCardError);
+    const error = new Error(mockCardError) as Error & { statusCode?: number };
     error.statusCode = 400;
     throw error;
   }
@@ -137,7 +137,7 @@ const createBooking = async ({ name, phone, email, date, time, sourceId, mockCar
   const existingAppointment = await getAppointmentBySlot(date, time);
 
   if (existingAppointment) {
-    const error = new Error('This Lawson service slot is no longer available');
+    const error = new Error('This Lawson service slot is no longer available') as Error & { statusCode?: number };
     error.statusCode = 400;
     throw error;
   }

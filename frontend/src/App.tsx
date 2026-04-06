@@ -36,7 +36,7 @@ const fallbackServiceCards = [
   }
 ];
 
-const loadSquareScript = (environment) => new Promise((resolve, reject) => {
+const loadSquareScript = (environment) => new Promise<void>((resolve, reject) => {
   const scriptUrl = environment === "production"
     ? "https://web.squarecdn.com/v1/square.js"
     : "https://sandbox.web.squarecdn.com/v1/square.js";
@@ -48,7 +48,7 @@ const loadSquareScript = (environment) => new Promise((resolve, reject) => {
       return;
     }
 
-    existingScript.addEventListener("load", resolve, { once: true });
+    existingScript.addEventListener("load", () => resolve(), { once: true });
     existingScript.addEventListener("error", () => reject(new Error("Could not load the Square Web Payments SDK.")), { once: true });
     return;
   }
@@ -57,7 +57,7 @@ const loadSquareScript = (environment) => new Promise((resolve, reject) => {
   script.src = scriptUrl;
   script.async = true;
   script.dataset.squareSdk = scriptUrl;
-  script.addEventListener("load", resolve, { once: true });
+  script.addEventListener("load", () => resolve(), { once: true });
   script.addEventListener("error", () => reject(new Error("Could not load the Square Web Payments SDK.")), { once: true });
   document.head.appendChild(script);
 });

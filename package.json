@@ -2,12 +2,15 @@
   "name": "booking",
   "version": "1.0.0",
   "description": "Booking app with backend",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
-    "start": "node server.js",
+    "start": "tsx server.ts",
     "stop": "powershell -Command \"$connections = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($connections) { $connections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; Write-Host 'Stopped server on port 3000.' } else { Write-Host 'No server running on port 3000.' }\"",
-    "build": "vite build --config frontend/vite.config.mjs",
-    "dev:client": "vite --config frontend/vite.config.mjs"
+    "build": "npm run typecheck && vite build --config frontend/vite.config.mjs",
+    "dev:client": "vite --config frontend/vite.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "logs:backend": "powershell -ExecutionPolicy Bypass -File scripts/watch-backend-logs.ps1",
+    "terminal:backend": "powershell -ExecutionPolicy Bypass -File scripts/open-backend-terminal.ps1"
   },
   "keywords": [],
   "author": "",
@@ -22,7 +25,14 @@
     "square": "^44.0.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
     "vite": "^8.0.3"
   }
 }

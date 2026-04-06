@@ -1,8 +1,9 @@
-const crypto = require('crypto');
+import crypto from 'node:crypto';
 
-const { square } = require('../../../config/appConfig');
+import { square } from '../../../config/appConfig';
+import type { MockCardScenario, PaymentInput, PaymentRecord } from '../../../types';
 
-const mockCards = [
+const mockCards: MockCardScenario[] = [
   {
     label: 'Approved Visa',
     number: '4111111111111111',
@@ -29,21 +30,21 @@ const mockCards = [
   }
 ];
 
-const normalizeCardNumber = (value) => String(value || '').replace(/\D/g, '');
+const normalizeCardNumber = (value: string | undefined): string => String(value || '').replace(/\D/g, '');
 
-const createPayment = async ({ amountCents, referenceId, note, mockCard }) => {
+const createPayment = async ({ amountCents, referenceId, note, mockCard }: PaymentInput): Promise<PaymentRecord> => {
   const normalizedNumber = normalizeCardNumber(mockCard?.number);
   const selectedCard = mockCards.find((card) => card.number === normalizedNumber) || mockCards[0];
 
   if (selectedCard.result === 'declined') {
     const error = new Error('Test payment declined. Use the approved test card number or switch to a different scenario.');
-    error.statusCode = 402;
+    Object.assign(error, { statusCode: 402 });
     throw error;
   }
 
   if (selectedCard.result === 'review') {
     const error = new Error('Test payment flagged for review. Try the approved mock card to complete the booking.');
-    error.statusCode = 402;
+    Object.assign(error, { statusCode: 402 });
     throw error;
   }
 
@@ -58,12 +59,9 @@ const createPayment = async ({ amountCents, referenceId, note, mockCard }) => {
       amount: BigInt(amountCents),
       currency: square.currency
     }
-  };
+  } as PaymentRecord;
 };
 
-module.exports = {
-  enabled: true,
-  providerLabel: 'Test payment mode',
-  mockCards,
-  createPayment
-};
+export { mockCards, createPayment };
+export const enabled = true;
+export const providerLabel = 'Test payment mode';
