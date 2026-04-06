@@ -1,6 +1,6 @@
 # Booking-web
 
-Aplicacion de reservas con frontend estatico en `public/` y backend modular en `server/`. La rama `square` deja preparado el flujo para que una cita solo se reserve despues de pagar el importe obligatorio con Square.
+Aplicacion de reservas con frontend React y backend modular en TypeScript. El flujo actual deja preparado que una cita solo se reserve despues de pagar el importe obligatorio con Square o con el modo mock de pruebas.
 
 ## Ejecutar localmente
 
@@ -39,10 +39,10 @@ http://localhost:3000
 
 ## Estructura
 
-- `public/`: frontend publico, admin y assets
-- `public/js/`: modulos del cliente
+- `frontend/`: frontend publico con React + Vite
+- `public/`: admin estatico y assets compartidos
 - `server/`: configuracion, base de datos y servicios del backend
-- `server.js`: bootstrap del servidor
+- `server.ts`: bootstrap principal del servidor
 - `appointments.db`: base de datos SQLite local
 - `.env` y `.env.example`: variables necesarias para entorno local
 

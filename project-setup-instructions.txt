@@ -49,7 +49,7 @@ Payment provider folders:
 TypeScript migration notes:
 - The active runtime now starts from server.ts
 - The React app entry now starts from frontend/src/main.tsx
-- Legacy JS files may still exist temporarily during migration, but the active path is TypeScript-based
+- The legacy runtime duplicates were removed and the active path is now TypeScript-based
 
 Future cleanup:
 - To remove test payments later, delete server/services/payments/mock/
