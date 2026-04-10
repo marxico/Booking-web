@@ -1,4 +1,5 @@
 const DEFAULT_ADMIN_TARGET = "/admin.html";
+const ADMIN_ENTRY_PATH = "/lawson-portal";
 
 const normalizeNextUrl = (next) => {
   try {
@@ -24,7 +25,7 @@ export const ensureAdminSession = async () => {
 
 export const redirectToAdminLogin = () => {
   const next = encodeURIComponent(window.location.pathname + window.location.search);
-  window.location.replace(`/admin-login.html?next=${next}`);
+  window.location.replace(`${ADMIN_ENTRY_PATH}?next=${next}`);
 };
 
 export const redirectAfterLogin = () => {

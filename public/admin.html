@@ -3,84 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Lawson Mobile Mechanic Admin</title>
   <link rel="icon" type="image/jpeg" href="assets/lawson-logo-original.jpeg">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="admin-body">
-  <main class="admin-main">
-    <section class="admin-hero">
+<body class="admin-body admin-dashboard-body">
+  <header class="admin-topbar">
+    <a class="brand brand--logo" href="/admin.html" aria-label="Lawson admin dashboard">
+      <img class="brand__mark" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
+      <span class="brand__text">
+        <strong>Lawson Admin</strong>
+        <span>Private dashboard</span>
+      </span>
+    </a>
+    <div class="admin-topbar__actions">
+      <button class="btn btn-secondary" id="adminRefreshButton" type="button">Refresh</button>
+      <button class="btn btn-secondary" id="adminLogoutButton" type="button">Log Out</button>
+    </div>
+  </header>
+
+  <main class="admin-main admin-dashboard">
+    <section class="admin-hero admin-dashboard-hero">
       <div class="container admin-hero__content">
-        <img class="admin-logo" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
         <span class="eyebrow">Lawson private dashboard</span>
-        <h1>Lawson Mobile Mechanic Admin</h1>
-        <p>Review incoming service requests, confirm appointments, or cancel bookings without editing the database manually.</p>
+        <h1>Manage the schedule without the clutter.</h1>
+        <p>Review requests, scan the calendar, update pricing, and keep history organized in focused views.</p>
       </div>
     </section>
 
     <section class="admin-section">
-      <div class="container">
-        <div class="admin-panel">
-          <div class="admin-panel__header">
-            <div>
-              <h2>Service Requests</h2>
-              <p>Pending requests keep their time slot blocked until Lawson accepts or cancels them.</p>
-            </div>
-            <div class="admin-panel__actions">
-              <button class="btn btn-secondary" id="adminRefreshButton" type="button">Refresh</button>
-              <button class="btn btn-secondary" id="adminClearAllButton" type="button">Clear All Requests</button>
-              <button class="btn btn-secondary" id="adminLogoutButton" type="button">Log Out</button>
-            </div>
-          </div>
-          <div class="admin-status" id="adminStatus" aria-live="polite"></div>
-          <div class="admin-list" id="adminAppointmentsList"></div>
-        </div>
+      <div class="container admin-dashboard-grid">
+        <aside class="admin-sidebar" aria-label="Admin sections">
+          <button class="admin-tab is-active" type="button" data-admin-view="requests">
+            <span>Requests</span>
+            <strong>Incoming jobs</strong>
+          </button>
+          <button class="admin-tab" type="button" data-admin-view="calendar">
+            <span>Calendar</span>
+            <strong>Month view</strong>
+          </button>
+          <button class="admin-tab" type="button" data-admin-view="pricing">
+            <span>Pricing</span>
+            <strong>Public rates</strong>
+          </button>
+          <button class="admin-tab" type="button" data-admin-view="history">
+            <span>History</span>
+            <strong>Archived requests</strong>
+          </button>
+        </aside>
 
-        <div class="admin-panel">
-          <div class="admin-panel__header">
-            <div>
-              <h2>Calendar View</h2>
-              <p>Scan upcoming appointments by month, just like a lightweight scheduling board.</p>
-            </div>
-            <div class="admin-panel__actions">
-              <button class="btn btn-secondary" id="adminCalendarPrevButton" type="button">Previous</button>
-              <button class="btn btn-secondary" id="adminCalendarTodayButton" type="button">Today</button>
-              <button class="btn btn-secondary" id="adminCalendarNextButton" type="button">Next</button>
+        <div class="admin-workspace">
+          <div class="admin-view is-active" id="adminViewRequests" data-admin-view-panel="requests">
+            <div class="admin-panel">
+              <div class="admin-panel__header">
+                <div>
+                  <span class="admin-panel__eyebrow">Requests</span>
+                  <h2>Service Requests</h2>
+                  <p>Pending requests keep their time slot blocked until Lawson accepts or cancels them.</p>
+                </div>
+                <div class="admin-panel__actions">
+                  <button class="btn btn-secondary" id="adminClearAllButton" type="button">Clear All Requests</button>
+                </div>
+              </div>
+              <div class="admin-status" id="adminStatus" aria-live="polite"></div>
+              <div class="admin-list" id="adminAppointmentsList"></div>
             </div>
           </div>
-          <div class="admin-status" id="adminCalendarLabel" aria-live="polite"></div>
-          <div class="admin-calendar" id="adminCalendar"></div>
-        </div>
 
-        <div class="admin-panel admin-panel--history is-collapsed" id="adminHistoryPanel">
-          <div class="admin-panel__header">
-            <div>
-              <h2>Request History</h2>
-              <p>Cleared requests stay here as a permanent record for reference.</p>
-            </div>
-            <div class="admin-panel__actions">
-              <button class="btn btn-secondary" id="adminHistoryToggleButton" type="button" aria-expanded="false">Show History</button>
+          <div class="admin-view" id="adminViewCalendar" data-admin-view-panel="calendar">
+            <div class="admin-panel">
+              <div class="admin-panel__header">
+                <div>
+                  <span class="admin-panel__eyebrow">Calendar</span>
+                  <h2>Calendar View</h2>
+                  <p>Scan upcoming appointments by month, just like a lightweight scheduling board.</p>
+                </div>
+                <div class="admin-panel__actions">
+                  <button class="btn btn-secondary" id="adminCalendarPrevButton" type="button">Previous</button>
+                  <button class="btn btn-secondary" id="adminCalendarTodayButton" type="button">Today</button>
+                  <button class="btn btn-secondary" id="adminCalendarNextButton" type="button">Next</button>
+                </div>
+              </div>
+              <div class="admin-status admin-calendar-title" id="adminCalendarLabel" aria-live="polite"></div>
+              <div class="admin-calendar" id="adminCalendar"></div>
             </div>
           </div>
-          <div class="admin-panel__content" id="adminHistoryContent">
-            <div class="admin-list" id="adminHistoryList"></div>
-          </div>
-        </div>
 
-        <div class="admin-panel">
-          <div class="admin-panel__header">
-            <div>
-              <h2>Pricing Control</h2>
-              <p>Set booking fees and public-facing prices here. Exactly one item should be marked as the required booking fee.</p>
+          <div class="admin-view" id="adminViewPricing" data-admin-view-panel="pricing">
+            <div class="admin-panel">
+              <div class="admin-panel__header">
+                <div>
+                  <span class="admin-panel__eyebrow">Pricing</span>
+                  <h2>Pricing Control</h2>
+                  <p>Set booking fees and public-facing prices here. Exactly one item should be marked as the required booking fee.</p>
+                </div>
+              </div>
+              <form class="pricing-form" id="adminPricingForm">
+                <div class="pricing-form__list" id="adminPricingList"></div>
+                <div class="admin-panel__actions admin-panel__actions--footer">
+                  <button class="btn btn-primary" id="adminSavePricingButton" type="submit">Save Pricing</button>
+                </div>
+              </form>
+              <div class="admin-status" id="adminPricingStatus" aria-live="polite"></div>
             </div>
           </div>
-          <form class="pricing-form" id="adminPricingForm">
-            <div class="pricing-form__list" id="adminPricingList"></div>
-            <div class="admin-panel__actions">
-              <button class="btn btn-primary" id="adminSavePricingButton" type="submit">Save Pricing</button>
+
+          <div class="admin-view" id="adminViewHistory" data-admin-view-panel="history">
+            <div class="admin-panel admin-panel--history" id="adminHistoryPanel">
+              <div class="admin-panel__header">
+                <div>
+                  <span class="admin-panel__eyebrow">History</span>
+                  <h2>Request History</h2>
+                  <p>Cleared requests stay here as a permanent record for reference.</p>
+                </div>
+                <div class="admin-panel__actions">
+                  <button class="btn btn-secondary" id="adminHistoryToggleButton" type="button" aria-expanded="true">Hide History</button>
+                </div>
+              </div>
+              <div class="admin-panel__content" id="adminHistoryContent">
+                <div class="admin-list" id="adminHistoryList"></div>
+              </div>
             </div>
-          </form>
-          <div class="admin-status" id="adminPricingStatus" aria-live="polite"></div>
+          </div>
         </div>
       </div>
     </section>

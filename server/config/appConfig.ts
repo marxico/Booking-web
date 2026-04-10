@@ -11,9 +11,20 @@ export const port = Number.parseInt(process.env.PORT || '3000', 10);
 export const allTimes = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'] as const;
 export const appointmentStatuses = ['pending', 'accepted', 'canceled'] as const;
 
+const normalizeRoutePath = (value: string | undefined, fallback: string): string => {
+  const rawPath = (value || fallback).trim() || fallback;
+  const withLeadingSlash = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+  const withoutTrailingSlash = withLeadingSlash.length > 1
+    ? withLeadingSlash.replace(/\/+$/, '')
+    : withLeadingSlash;
+
+  return withoutTrailingSlash;
+};
+
 export const admin = {
   username: process.env.ADMIN_USERNAME || 'admin',
   password: process.env.ADMIN_PASSWORD || 'change-me-admin',
+  entryPath: normalizeRoutePath(process.env.ADMIN_ENTRY_PATH, '/lawson-portal'),
   sessionCookieName: 'admin_session',
   sessionDurationMs: 1000 * 60 * 60 * 8
 };

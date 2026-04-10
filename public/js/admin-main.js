@@ -17,7 +17,9 @@ import {
   adminPricingStatus,
   adminRefreshButton,
   adminSavePricingButton,
-  adminStatus
+  adminStatus,
+  adminTabs,
+  adminViewPanels
 } from "./admin-dom.js";
 
 const statusLabels = {
@@ -35,6 +37,20 @@ let currentAppointments = [];
 let currentHistory = [];
 let currentCalendarDate = new Date();
 let isHistoryExpanded = false;
+
+const setActiveAdminView = (viewName) => {
+  adminTabs.forEach((tab) => {
+    const isActive = tab.dataset.adminView === viewName;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-current", isActive ? "page" : "false");
+  });
+
+  adminViewPanels.forEach((panel) => {
+    const isActive = panel.dataset.adminViewPanel === viewName;
+    panel.classList.toggle("is-active", isActive);
+    panel.hidden = !isActive;
+  });
+};
 
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
@@ -65,30 +81,31 @@ const parseAdminResponse = async (response, fallbackMessage) => {
 
 const renderAppointments = (appointments) => {
   currentAppointments = appointments;
+  const visibleAppointments = appointments.filter((appointment) => appointment.status !== "canceled");
 
-  if (!appointments.length) {
+  if (!visibleAppointments.length) {
     adminAppointmentsList.innerHTML = '<p class="empty-state">No service requests yet.</p>';
     renderCalendar();
     return;
   }
 
-  adminAppointmentsList.innerHTML = appointments.map((appointment) => `
+  adminAppointmentsList.innerHTML = visibleAppointments.map((appointment) => `
     <article class="admin-card">
       <div class="admin-card__header">
         <div>
-          <p class="admin-card__date">${appointment.date}</p>
-          <h3>${appointment.time}</h3>
+          <p class="admin-card__date">${escapeHtml(appointment.date)}</p>
+          <h3>${escapeHtml(appointment.time)}</h3>
         </div>
-        <span class="status-pill status-pill--${appointment.status}">${statusLabels[appointment.status]}</span>
+        <span class="status-pill status-pill--${escapeHtml(appointment.status)}">${escapeHtml(statusLabels[appointment.status] || appointment.status)}</span>
       </div>
       <div class="admin-card__body">
-        <p><strong>Name:</strong> ${appointment.name}</p>
-        <p><strong>Phone:</strong> ${appointment.phone || "Not provided"}</p>
-        <p><strong>Email:</strong> ${appointment.email}</p>
-        <p><strong>Payment:</strong> ${paymentLabels[appointment.payment_status] || appointment.payment_status}</p>
-        <p><strong>Amount:</strong> ${appointment.payment_amount_cents ? `$${(appointment.payment_amount_cents / 100).toFixed(2)}` : "N/A"}</p>
-        <p><strong>Source:</strong> ${appointment.booking_source || "manual"}</p>
-        <p><strong>Square Payment ID:</strong> ${appointment.square_payment_id || "N/A"}</p>
+        <p><strong>Name:</strong> ${escapeHtml(appointment.name)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(appointment.phone || "Not provided")}</p>
+        <p><strong>Email:</strong> ${escapeHtml(appointment.email)}</p>
+        <p><strong>Payment:</strong> ${escapeHtml(paymentLabels[appointment.payment_status] || appointment.payment_status)}</p>
+        <p><strong>Amount:</strong> ${escapeHtml(appointment.payment_amount_cents ? `$${(appointment.payment_amount_cents / 100).toFixed(2)}` : "N/A")}</p>
+        <p><strong>Source:</strong> ${escapeHtml(appointment.booking_source || "manual")}</p>
+        <p><strong>Square Payment ID:</strong> ${escapeHtml(appointment.square_payment_id || "N/A")}</p>
       </div>
       <div class="admin-card__actions">
         <button class="btn btn-primary admin-action" type="button" data-id="${appointment.id}" data-status="accepted">Accept</button>
@@ -112,20 +129,20 @@ const renderHistory = (historyItems) => {
     <article class="admin-card admin-card--history">
       <div class="admin-card__header">
         <div>
-          <p class="admin-card__date">${item.date}</p>
-          <h3>${item.time}</h3>
+          <p class="admin-card__date">${escapeHtml(item.date)}</p>
+          <h3>${escapeHtml(item.time)}</h3>
         </div>
-        <span class="status-pill status-pill--${item.status}">${statusLabels[item.status] || item.status}</span>
+        <span class="status-pill status-pill--${escapeHtml(item.status)}">${escapeHtml(statusLabels[item.status] || item.status)}</span>
       </div>
       <div class="admin-card__body">
-        <p><strong>Name:</strong> ${item.name}</p>
-        <p><strong>Phone:</strong> ${item.phone || "Not provided"}</p>
-        <p><strong>Email:</strong> ${item.email}</p>
-        <p><strong>Payment:</strong> ${paymentLabels[item.payment_status] || item.payment_status}</p>
-        <p><strong>Amount:</strong> ${item.payment_amount_cents ? `$${(item.payment_amount_cents / 100).toFixed(2)}` : "N/A"}</p>
-        <p><strong>Square Payment ID:</strong> ${item.square_payment_id || "N/A"}</p>
-        <p><strong>Archived action:</strong> ${item.action}</p>
-        <p><strong>Saved on:</strong> ${new Date(item.recorded_at).toLocaleString()}</p>
+        <p><strong>Name:</strong> ${escapeHtml(item.name)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(item.phone || "Not provided")}</p>
+        <p><strong>Email:</strong> ${escapeHtml(item.email)}</p>
+        <p><strong>Payment:</strong> ${escapeHtml(paymentLabels[item.payment_status] || item.payment_status)}</p>
+        <p><strong>Amount:</strong> ${escapeHtml(item.payment_amount_cents ? `$${(item.payment_amount_cents / 100).toFixed(2)}` : "N/A")}</p>
+        <p><strong>Square Payment ID:</strong> ${escapeHtml(item.square_payment_id || "N/A")}</p>
+        <p><strong>Archived action:</strong> ${escapeHtml(item.action)}</p>
+        <p><strong>Saved on:</strong> ${escapeHtml(new Date(item.recorded_at).toLocaleString())}</p>
       </div>
       <div class="admin-card__actions">
         <button class="btn btn-secondary admin-history-action" type="button" data-history-id="${item.id}">Restore Appointment</button>
@@ -266,7 +283,8 @@ const loadAdminAppointments = async () => {
     }
 
     renderAppointments(result.appointments);
-    adminStatus.textContent = `Loaded ${result.appointments.length} Lawson request(s).`;
+    const activeCount = result.appointments.filter((appointment) => appointment.status !== "canceled").length;
+    adminStatus.textContent = `Loaded ${activeCount} active Lawson request(s).`;
   } catch (error) {
     adminAppointmentsList.innerHTML = '<p class="empty-state">Could not load service requests.</p>';
     adminStatus.textContent = error.message;
@@ -349,6 +367,7 @@ const updateAppointmentStatus = async (button) => {
     adminStatus.textContent = result.message;
     await loadAdminAppointments();
     await loadAdminHistory();
+    setActiveAdminView("requests");
   } catch (error) {
     adminStatus.textContent = error.message;
     button.disabled = false;
@@ -360,6 +379,12 @@ adminRefreshButton.addEventListener("click", () => {
   loadAdminAppointments();
   loadAdminHistory();
   loadAdminPricing();
+});
+
+adminTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    setActiveAdminView(tab.dataset.adminView);
+  });
 });
 
 adminCalendarPrevButton.addEventListener("click", () => {
@@ -536,7 +561,8 @@ const initializeAdminDashboard = async () => {
   loadAdminHistory();
   loadAdminPricing();
   renderCalendar();
-  setHistoryExpanded(false);
+  setHistoryExpanded(true);
+  setActiveAdminView("requests");
 };
 
 initializeAdminDashboard();

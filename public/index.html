@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lawson Mobile Mechanic</title>
+  <title>Lawson Mobile Mechanic | Mobile Mechanic in Memphis</title>
+  <meta name="description" content="Mobile mechanic in Memphis, Tennessee for brakes, batteries, oil changes, diagnostics, and roadside help.">
   <link rel="icon" type="image/jpeg" href="assets/lawson-logo-original.jpeg">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,16 +14,19 @@
       <a class="brand brand--logo" href="#home" aria-label="Lawson Mobile Mechanic home">
         <img class="brand__mark" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
         <span class="brand__text">
-          <strong>Lawson</strong>
-          <span>Mobile Mechanic</span>
+          <strong>Lawson Mobile Mechanic</strong>
+          <span>Memphis on-site auto repair</span>
         </span>
       </a>
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#home" class="active">Home</a>
-        <a href="#appointment">Book Appointment</a>
-        <a href="#pricing">Pricing</a>
         <a href="#services">Services</a>
+        <a href="#appointment">Book</a>
+        <a href="#promotions">Offers</a>
+        <a href="#reviews">Reviews</a>
+        <a href="#area">Area</a>
       </nav>
+      <a class="nav-phone" href="tel:+19015550123">(901) 555-0123</a>
     </div>
   </header>
 
@@ -30,39 +34,53 @@
     <section class="hero" id="home">
       <div class="container hero-panel">
         <div class="hero-copy">
-          <span class="eyebrow">Mobile auto repair with a premium touch</span>
-          <h1>Lawson Mobile Mechanic</h1>
-          <p>
-            Honest diagnostics, dependable repairs, and on-site service built for drivers who want expert help without the shop hassle.
-          </p>
+          <span class="eyebrow">Same-week mobile mechanic appointments</span>
+          <h1>Mobile Mechanic in Memphis</h1>
+          <p>Brakes, battery replacement, oil changes, diagnostics, and roadside help brought to your driveway, office, or parking lot.</p>
+          <ul class="hero-services" aria-label="Services">
+            <li>Brakes</li>
+            <li>Battery</li>
+            <li>Oil change</li>
+            <li>Diagnostics</li>
+            <li>Roadside</li>
+          </ul>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#appointment">Book Service</a>
-            <a class="btn btn-secondary" href="#services">Explore Services</a>
+            <a class="btn btn-primary" href="#appointment">Book Appointment</a>
+            <a class="btn btn-secondary" href="tel:+19015550123">Call Now</a>
           </div>
         </div>
+        <div class="hero-photo reveal">
+          <img
+            src="assets/mechanic-hero.jpg"
+            sizes="(max-width: 980px) 100vw, 42vw"
+            alt="Mechanic inspecting a vehicle engine"
+            width="900"
+            height="600"
+            fetchpriority="high"
+            decoding="async"
+          >
+          <div class="hero-proof">
+            <strong id="heroBookingFeeTitle">Booking required</strong>
+            <span id="heroBookingFeeDescription">Secure payment reserves your appointment slot.</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <div class="hero-grid reveal">
-          <article class="hero-card hero-card--logo">
-            <img class="hero-logo" src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
-          </article>
-
-          <article class="hero-card hero-card--accent">
-            <span class="hero-card__label">Coverage</span>
-            <h2>Memphis, Tennessee and surrounding communities</h2>
-            <p>Mobile mechanic service across Memphis and nearby neighborhoods throughout the Mid-South area.</p>
-          </article>
-
-          <article class="hero-card">
-            <span class="hero-card__label">Call-Out Fee</span>
-            <h2 id="heroBookingFeeTitle">Paid booking required</h2>
-            <p id="heroBookingFeeDescription">Appointments are only reserved after the booking fee is paid securely through Square.</p>
-          </article>
-
-          <article class="hero-card">
-            <span class="hero-card__label">Approach</span>
-            <h2>Veteran-owned, reliable, and direct</h2>
-            <p>Clean workmanship, clear communication, and repairs handled with confidence.</p>
-          </article>
+    <section id="services">
+      <div class="container split">
+        <div class="section-copy reveal">
+          <span class="eyebrow">Services</span>
+          <h2>Real repairs without the waiting room.</h2>
+          <p>Clear diagnosis, clean work, and practical recommendations for Memphis drivers who need their car back on schedule.</p>
+          <img class="section-image" src="assets/mechanic-engine.jpg" alt="Mechanic working under the hood of a car" width="900" height="600" loading="lazy" decoding="async">
+        </div>
+        <div class="services-list reveal">
+          <article><span>B</span><h3>Brakes</h3><p>Pads, rotors, inspections, brake noise checks, and safe service recommendations.</p></article>
+          <article><span>V</span><h3>Battery</h3><p>Battery testing, replacement, jump-start support, and charging system checks.</p></article>
+          <article><span>O</span><h3>Oil Change</h3><p>Mobile oil and filter service with fluid checks while the vehicle stays with you.</p></article>
+          <article><span>D</span><h3>Diagnostics</h3><p>Check engine lights, no-start conditions, warning lights, leaks, and strange sounds.</p></article>
+          <article><span>R</span><h3>Roadside</h3><p>On-site help for urgent issues at home, work, hotels, and parking lots.</p></article>
         </div>
       </div>
     </section>
@@ -70,50 +88,28 @@
     <section id="appointment">
       <div class="container">
         <div class="section-heading reveal">
-          <h2>Book Appointment</h2>
-          <p>Choose your preferred date and time, pay the booking amount, and send your request directly to Lawson Mobile Mechanic.</p>
+          <span class="eyebrow">Appointment</span>
+          <h2>Book a mobile service visit.</h2>
+          <p>Send the basics, choose a time, and reserve your appointment online. We will confirm vehicle details before arrival.</p>
         </div>
-
         <div class="appointment-layout reveal">
           <div class="form-card">
             <form id="appointmentForm">
               <div class="form-grid">
-                <div class="field">
-                  <label for="name">Full Name</label>
-                  <input id="name" name="name" type="text" placeholder="Your full name" required>
-                </div>
-                <div class="field">
-                  <label for="phone">Phone Number</label>
-                  <input id="phone" name="phone" type="tel" placeholder="(901) 555-0123" autocomplete="tel" required>
-                </div>
-                <div class="field">
-                  <label for="email">Email</label>
-                  <input id="email" name="email" type="email" placeholder="name@example.com" required>
-                </div>
-                <div class="field">
-                  <label for="date">Date</label>
-                  <input id="date" name="date" type="date" required>
-                </div>
-                <div class="field">
-                  <label for="time">Time</label>
-                  <select id="time" name="time" required>
-                    <option value="" selected disabled>Select a date first</option>
-                  </select>
-                </div>
+                <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" placeholder="Your name" autocomplete="name" required></div>
+                <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" placeholder="(901) 555-0123" autocomplete="tel" required></div>
+                <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" placeholder="name@example.com" autocomplete="email" required></div>
+                <div class="field"><label for="date">Date</label><input id="date" name="date" type="date" required></div>
+                <div class="field"><label for="time">Time</label><select id="time" name="time" required><option value="" selected disabled>Select a date first</option></select></div>
               </div>
               <section class="payment-panel" id="paymentPanel" aria-live="polite">
                 <div class="payment-panel__header">
-                  <div>
-                    <p class="payment-panel__eyebrow">Square Payment</p>
-                    <h3 id="paymentTitle">Secure diagnostic payment</h3>
-                  </div>
+                  <div><p class="payment-panel__eyebrow">Secure booking</p><h3 id="paymentTitle">Reserve your appointment</h3></div>
                   <span class="payment-badge" id="paymentAmountBadge">$0.00</span>
                 </div>
-                <p class="payment-panel__copy" id="paymentDescription">
-                  Add a card to pay the required booking amount before your appointment request is submitted.
-                </p>
+                <p class="payment-panel__copy" id="paymentDescription">Add a card to pay the required booking amount before your appointment request is submitted.</p>
                 <div class="square-card" id="squareCard"></div>
-                <p class="payment-status" id="paymentStatus">Loading Square payment setup...</p>
+                <p class="payment-status" id="paymentStatus">Loading secure payment setup...</p>
               </section>
               <div class="form-footer">
                 <button class="btn btn-primary" type="submit">Request Appointment</button>
@@ -121,28 +117,97 @@
               </div>
             </form>
           </div>
-
           <aside class="info-card">
-            <span class="info-card__eyebrow">What to expect</span>
-            <h3>Convenient service without giving up quality</h3>
+            <span class="eyebrow">What to expect</span>
+            <h3>Mobile service that feels organized from the first tap.</h3>
             <ul class="info-list">
-              <li>Mobile repair and maintenance for cars, trucks, SUVs, and selected commercial vehicles.</li>
-              <li>Your time slot is only locked after the required booking payment is approved.</li>
-              <li>Square collects the booking payment securely before the request reaches the admin dashboard.</li>
-              <li>Appointments can later be reviewed, accepted, or canceled from the admin dashboard.</li>
+              <li>Arrival window confirmed by phone or text before dispatch.</li>
+              <li>Upfront findings before parts or additional labor are approved.</li>
+              <li>Driveway, workplace, hotel, apartment, and parking lot service.</li>
+              <li>Most routine work can be completed the same visit when parts are available.</li>
             </ul>
           </aside>
         </div>
       </div>
     </section>
 
-    <section id="pricing">
-      <div class="container services-stack">
+    <section id="promotions">
+      <div class="container">
         <div class="section-heading reveal">
-          <h2>Pricing</h2>
-          <p>Clear starting prices for common services, with the booking fee highlighted so customers know what must be paid to reserve a slot.</p>
+          <span class="eyebrow">Promotions</span>
+          <h2>Current Memphis offers.</h2>
+          <p>Simple savings for new customers and drivers booking maintenance before a bigger problem starts.</p>
         </div>
+        <div class="promo-grid">
+          <article class="promo-card reveal">
+            <span class="promo-label">New customer</span>
+            <h3>Free diagnostic scan with approved repair</h3>
+            <p>Book a diagnostic visit, approve the recommended repair, and the scan fee is credited toward the completed service.</p>
+          </article>
+          <article class="promo-card reveal">
+            <span class="promo-label">Maintenance bundle</span>
+            <h3>$25 off brake service booked online</h3>
+            <p>Use the appointment form and mention this offer during confirmation. Applies to pad and rotor service.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
+    <section id="reviews">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Reviews</span>
+          <h2>Memphis drivers want clear answers.</h2>
+          <p>That is the standard every visit is built around: be on time, explain the issue, and do the work cleanly.</p>
+        </div>
+        <div class="reviews-grid">
+          <article class="review-card reveal">
+            <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+            <p>My car would not start before work. Lawson tested the battery, found the issue, and had me moving again the same morning.</p>
+            <cite>Maria G., Midtown</cite>
+          </article>
+          <article class="review-card reveal">
+            <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+            <p>Very professional. He explained the brake noise without pushing extra work and completed everything in my driveway.</p>
+            <cite>Devon R., Germantown</cite>
+          </article>
+          <article class="review-card reveal">
+            <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+            <p>The appointment was easy, communication was fast, and the diagnostic saved me from towing the vehicle to a shop.</p>
+            <cite>Angela P., Bartlett</cite>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="area">
+      <div class="container split">
+        <div class="section-copy reveal">
+          <span class="eyebrow">Service Area</span>
+          <h2>Serving Memphis and nearby cities.</h2>
+          <p>Mobile mechanic appointments are available across the Mid-South. Not sure if you are in range? Call and we will check the route.</p>
+          <ul class="area-list">
+            <li>Memphis</li>
+            <li>Germantown</li>
+            <li>Bartlett</li>
+            <li>Collierville</li>
+            <li>Cordova</li>
+            <li>Southaven</li>
+            <li>Olive Branch</li>
+            <li>Lakeland</li>
+          </ul>
+        </div>
+        <img class="section-image reveal" src="assets/service-vehicle.jpg" alt="A service vehicle parked on a city street" width="900" height="600" loading="lazy" decoding="async">
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Starting points</span>
+          <h2>Transparent service pricing.</h2>
+          <p>Final pricing depends on vehicle, parts, location, and the approved repair plan.</p>
+        </div>
         <div class="pricing-grid" id="pricingList">
           <article class="service-card">
             <div class="service-meta">
@@ -156,88 +221,59 @@
       </div>
     </section>
 
-    <section id="services">
-      <div class="container services-stack">
-        <div class="section-heading reveal">
-          <h2>Services &amp; Coverage</h2>
-          <p>Mobile mechanic support focused on diagnostics, repairs, maintenance, and dependable local service.</p>
-        </div>
-
-        <div class="promo-card reveal">
-          <span class="promo-label">Trusted Local Service</span>
-          <h3>Built for convenience without sacrificing workmanship</h3>
-          <p>From brakes and batteries to no-start situations and commercial support, the goal is simple: fix the issue right and treat customers well.</p>
-        </div>
-
-        <div class="services-grid">
-          <article class="service-card reveal">
-            <div class="service-meta">
-              <span class="service-tag">Diagnostics</span>
-              <span class="price" data-service-price="diagnostic_visit">$90.00</span>
-            </div>
-            <h3 data-service-name="diagnostic_visit">Mobile Diagnostic Visit</h3>
-            <p data-service-description="diagnostic_visit">On-site troubleshooting for warning lights, no-start issues, unusual sounds, and hard-to-track mechanical problems.</p>
-            <a class="service-link" href="#appointment" data-service-link="diagnostic_visit">Request service</a>
-          </article>
-
-          <article class="service-card reveal">
-            <div class="service-meta">
-              <span class="service-tag">Maintenance</span>
-              <span class="price" data-service-price="brake_service">$125.00</span>
-            </div>
-            <h3 data-service-name="brake_service">Brake Service Inspection</h3>
-            <p data-service-description="brake_service">Pricing starts here for brake inspection and recommended service planning.</p>
-            <a class="service-link" href="#appointment" data-service-link="brake_service">Request service</a>
-          </article>
-
-          <article class="service-card reveal">
-            <div class="service-meta">
-              <span class="service-tag">Fleet</span>
-              <span class="price">Custom</span>
-            </div>
-            <h3>Commercial Vehicle Support</h3>
-            <p>Work-truck and business vehicle service designed to reduce downtime and keep the schedule moving.</p>
-            <a class="service-link" href="#appointment">Request service</a>
-          </article>
-
-          <article class="service-card reveal">
-            <div class="service-meta">
-              <span class="service-tag">Roadside</span>
-              <span class="price" data-service-price="roadside_assistance">$150.00</span>
-            </div>
-            <h3 data-service-name="roadside_assistance">Emergency Assistance</h3>
-            <p data-service-description="roadside_assistance">Roadside support for battery failures, belt issues, and urgent situations that need a calm, experienced mechanic.</p>
-            <a class="service-link" href="#appointment" data-service-link="roadside_assistance">Request service</a>
-          </article>
-
-          <article class="service-card reveal">
-            <div class="service-meta">
-              <span class="service-tag">Coverage</span>
-              <span class="price">Local</span>
-            </div>
-            <h3>Memphis Area Coverage</h3>
-            <p>Serving Memphis, Tennessee with mobile convenience for drivers who need reliable service where they are.</p>
-            <a class="service-link" href="#appointment">Check availability</a>
-          </article>
-
-          <article class="service-card reveal">
-            <div class="service-meta">
-              <span class="service-tag">Quality</span>
-              <span class="price">Backed</span>
-            </div>
-            <h3>Confident Repairs</h3>
-            <p>Practical recommendations, quality parts, and a service experience that feels thoughtful from start to finish.</p>
-            <a class="service-link" href="#appointment">Book now</a>
-          </article>
+    <section id="contact">
+      <div class="container final-cta reveal">
+        <span class="eyebrow">Ready when you are</span>
+        <h2>Skip the shop. Keep your day moving.</h2>
+        <p>Book a mobile mechanic visit in Memphis and get clear answers before repairs begin.</p>
+        <div class="hero-actions final-cta__actions">
+          <a class="btn btn-primary" href="#appointment">Book Appointment</a>
+          <a class="btn btn-secondary" href="tel:+19015550123">Call Now</a>
         </div>
       </div>
     </section>
   </main>
 
-  <footer>
-    Lawson Mobile Mechanic. Mobile repair with clear communication, honest work, and premium service standards.
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <img src="assets/lawson-logo-original.jpeg" alt="Lawson Mobile Mechanic logo">
+        <div>
+          <strong>Lawson Mobile Mechanic</strong>
+          <p>Memphis mobile auto repair with clear communication and clean workmanship.</p>
+        </div>
+      </div>
+      <nav class="site-footer__nav" aria-label="Footer navigation">
+        <h3>Site</h3>
+        <a href="#services">Services</a>
+        <a href="#appointment">Book Appointment</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#area">Service Area</a>
+      </nav>
+      <div class="site-footer__nav">
+        <h3>Services</h3>
+        <span>Brakes</span>
+        <span>Battery</span>
+        <span>Oil Change</span>
+        <span>Diagnostics</span>
+        <span>Roadside</span>
+      </div>
+      <div class="site-footer__nav">
+        <h3>Contact</h3>
+        <a href="tel:+19015550123">(901) 555-0123</a>
+        <a href="mailto:service@lawsonmobilemechanic.com">service@lawsonmobilemechanic.com</a>
+        <span>Memphis, Tennessee</span>
+        <span>Mon-Fri 8 AM-7 PM</span>
+        <span>Sat 9 AM-5 PM</span>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span>Lawson Mobile Mechanic</span>
+      <span>Memphis, Tennessee</span>
+    </div>
   </footer>
 
+  <a class="mobile-call" href="tel:+19015550123" aria-label="Call Lawson Mobile Mechanic">Call Now: (901) 555-0123</a>
   <script type="module" src="script.js"></script>
 </body>
 </html>

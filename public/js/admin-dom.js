@@ -16,3 +16,5 @@ export const adminCalendarLabel = document.getElementById("adminCalendarLabel");
 export const adminCalendarPrevButton = document.getElementById("adminCalendarPrevButton");
 export const adminCalendarTodayButton = document.getElementById("adminCalendarTodayButton");
 export const adminCalendarNextButton = document.getElementById("adminCalendarNextButton");
+export const adminTabs = document.querySelectorAll("[data-admin-view]");
+export const adminViewPanels = document.querySelectorAll("[data-admin-view-panel]");

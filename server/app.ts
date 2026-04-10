@@ -1,8 +1,8 @@
 require('dotenv').config();
 
 const express = require('express');
-const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 
 const { port, publicDir, frontendDistDir, allTimes, appointmentStatuses, admin, square } = require('./config/appConfig');
 const { all, get, run, ensureSchema } = require('./db');
@@ -26,9 +26,32 @@ const {
 } = require('./services/payments');
 
 const app = express();
+const loginAttempts = new Map();
 
-app.use(express.json());
-app.use(cors());
+app.disable('x-powered-by');
+app.use(express.json({ limit: '32kb' }));
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      "img-src 'self' data:",
+      "style-src 'self' 'unsafe-inline'",
+      "script-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com",
+      "connect-src 'self' https://connect.squareup.com https://connect.squareupsandbox.com",
+      "frame-src https://web.squarecdn.com https://sandbox.web.squarecdn.com"
+    ].join('; ')
+  );
+  next();
+});
 app.use((req, res, next) => {
   const startedAt = Date.now();
 
@@ -65,6 +88,95 @@ const requireAdminAuth = (req, res, next) => {
   }
 
   next();
+};
+
+const getRequestOrigin = (req) => {
+  const origin = req.get('origin');
+
+  if (origin) {
+    return origin;
+  }
+
+  const referer = req.get('referer');
+
+  if (!referer) {
+    return '';
+  }
+
+  try {
+    return new URL(referer).origin;
+  } catch (error) {
+    return '';
+  }
+};
+
+const requireSameOrigin = (req, res, next) => {
+  const requestOrigin = getRequestOrigin(req);
+
+  if (!requestOrigin) {
+    return next();
+  }
+
+  const expectedOrigin = `${req.protocol}://${req.get('host')}`;
+
+  if (requestOrigin !== expectedOrigin) {
+    return res.status(403).json({ error: 'Request origin is not allowed.' });
+  }
+
+  next();
+};
+
+const safeEqual = (left = '', right = '') => {
+  const leftBuffer = Buffer.from(String(left));
+  const rightBuffer = Buffer.from(String(right));
+
+  if (leftBuffer.length !== rightBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+};
+
+const getLoginAttemptKey = (req) => req.ip || req.socket.remoteAddress || 'unknown';
+
+const checkLoginRateLimit = (req, res, next) => {
+  const key = getLoginAttemptKey(req);
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000;
+  const maxAttempts = 8;
+  const existing = loginAttempts.get(key) || { count: 0, resetAt: now + windowMs };
+
+  if (existing.resetAt <= now) {
+    loginAttempts.set(key, { count: 0, resetAt: now + windowMs });
+    return next();
+  }
+
+  if (existing.count >= maxAttempts) {
+    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
+  }
+
+  next();
+};
+
+const recordFailedLoginAttempt = (req) => {
+  const key = getLoginAttemptKey(req);
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000;
+  const existing = loginAttempts.get(key) || { count: 0, resetAt: now + windowMs };
+
+  if (existing.resetAt <= now) {
+    loginAttempts.set(key, { count: 1, resetAt: now + windowMs });
+    return;
+  }
+
+  loginAttempts.set(key, {
+    count: existing.count + 1,
+    resetAt: existing.resetAt
+  });
+};
+
+const clearLoginAttempts = (req) => {
+  loginAttempts.delete(getLoginAttemptKey(req));
 };
 
 const getAppointmentBySlot = (date, time) => get(
@@ -105,14 +217,45 @@ const validateMockCard = (mockCard) => {
   return null;
 };
 
+const validateBookingPayload = ({ name, phone, email, date, time }) => {
+  const normalized = {
+    name: String(name || '').trim(),
+    phone: String(phone || '').trim(),
+    email: String(email || '').trim().toLowerCase(),
+    date: String(date || '').trim(),
+    time: String(time || '').trim()
+  };
+
+  if (!normalized.name || !normalized.phone || !normalized.email || !normalized.date || !normalized.time) {
+    return { error: 'All booking fields are required' };
+  }
+
+  if (normalized.name.length > 80 || normalized.phone.length > 30 || normalized.email.length > 120) {
+    return { error: 'One or more booking fields are too long.' };
+  }
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalized.email)) {
+    return { error: 'Enter a valid email address.' };
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized.date)) {
+    return { error: 'Enter a valid appointment date.' };
+  }
+
+  return { value: normalized };
+};
+
 const createBooking = async ({ name, phone, email, date, time, sourceId, mockCard }) => {
   const bookingFee = await getBookingFee();
+  const validation = validateBookingPayload({ name, phone, email, date, time });
 
-  if (!name || !phone || !email || !date || !time) {
-    const error = new Error('All booking fields are required') as Error & { statusCode?: number };
+  if (validation.error) {
+    const error = new Error(validation.error) as Error & { statusCode?: number };
     error.statusCode = 400;
     throw error;
   }
+
+  ({ name, phone, email, date, time } = validation.value);
 
   if (!allTimes.includes(time)) {
     const error = new Error('Invalid appointment time') as Error & { statusCode?: number };
@@ -244,7 +387,7 @@ app.get('/available', async (req, res) => {
   }
 });
 
-app.post('/book', async (req, res) => {
+app.post('/book', requireSameOrigin, async (req, res) => {
   try {
     const result = await createBooking(req.body);
     res.json(result);
@@ -260,19 +403,21 @@ app.get('/admin/session', (req, res) => {
   res.json({ authenticated: Boolean(token) });
 });
 
-app.post('/admin/login', (req, res) => {
+app.post('/admin/login', requireSameOrigin, checkLoginRateLimit, (req, res) => {
   const { username, password } = req.body;
 
-  if (username !== admin.username || password !== admin.password) {
+  if (!safeEqual(username, admin.username) || !safeEqual(password, admin.password)) {
+    recordFailedLoginAttempt(req);
     return res.status(401).json({ error: 'Invalid Lawson admin credentials' });
   }
 
+  clearLoginAttempts(req);
   const token = createAdminSession();
-  setSessionCookie(res, token);
+  setSessionCookie(req, res, token);
   res.json({ message: 'Lawson admin login successful' });
 });
 
-app.post('/admin/logout', (req, res) => {
+app.post('/admin/logout', requireSameOrigin, (req, res) => {
   const token = getValidSessionToken(req);
 
   if (token) {
@@ -289,7 +434,7 @@ app.get('/admin/appointments', requireAdminAuth, async (req, res) => {
       `SELECT id, name, phone, email, date, time, status, payment_status, payment_amount_cents,
               square_payment_id, square_order_id, square_receipt_url, booking_source
        FROM appointments
-       ORDER BY date ASC, time ASC, id ASC`
+       ORDER BY id ASC`
     );
 
     res.json({ appointments });
@@ -304,7 +449,7 @@ app.get('/admin/appointments/history', requireAdminAuth, async (req, res) => {
       `SELECT id, appointment_id, name, phone, email, date, time, status, payment_status,
               payment_amount_cents, square_payment_id, square_order_id, action, recorded_at
        FROM appointment_history
-       ORDER BY recorded_at DESC, id DESC
+       ORDER BY id ASC
        LIMIT 100`
     );
 
@@ -314,7 +459,7 @@ app.get('/admin/appointments/history', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post('/admin/appointments/history/:id/restore', requireAdminAuth, async (req, res) => {
+app.post('/admin/appointments/history/:id/restore', requireSameOrigin, requireAdminAuth, async (req, res) => {
   try {
     const historyItem = await get(
       `SELECT id, appointment_id, name, phone, email, date, time, status, payment_status,
@@ -337,7 +482,7 @@ app.post('/admin/appointments/history/:id/restore', requireAdminAuth, async (req
     await run('BEGIN TRANSACTION');
 
     try {
-      const restoredStatus = appointmentStatuses.includes(historyItem.status) ? historyItem.status : 'pending';
+      const restoredStatus = 'pending';
 
       await run(
         `INSERT INTO appointments
@@ -392,13 +537,13 @@ app.post('/admin/appointments/history/:id/restore', requireAdminAuth, async (req
   }
 });
 
-app.post('/admin/appointments/clear', requireAdminAuth, async (req, res) => {
+app.post('/admin/appointments/clear', requireSameOrigin, requireAdminAuth, async (req, res) => {
   try {
     const appointments = await all(
-      `SELECT id, name, phone, email, date, time, status, payment_status, payment_amount_cents,
+     `SELECT id, name, phone, email, date, time, status, payment_status, payment_amount_cents,
               square_payment_id, square_order_id
        FROM appointments
-       ORDER BY date ASC, time ASC, id ASC`
+       ORDER BY id ASC`
     );
 
     if (!appointments.length) {
@@ -446,16 +591,61 @@ app.post('/admin/appointments/clear', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.patch('/admin/appointments/:id/status', requireAdminAuth, async (req, res) => {
+app.patch('/admin/appointments/:id/status', requireSameOrigin, requireAdminAuth, async (req, res) => {
   try {
     if (!appointmentStatuses.includes(req.body.status)) {
       return res.status(400).json({ error: 'Invalid Lawson request status' });
     }
 
-    const result = await run('UPDATE appointments SET status = ? WHERE id = ?', [req.body.status, req.params.id]);
+    const existingAppointment = await get(
+      `SELECT id, name, phone, email, date, time, status, payment_status, payment_amount_cents,
+              square_payment_id, square_order_id
+       FROM appointments
+       WHERE id = ?`,
+      [req.params.id]
+    );
 
-    if (result.changes === 0) {
+    if (!existingAppointment) {
       return res.status(404).json({ error: 'Lawson request not found' });
+    }
+
+    await run('BEGIN TRANSACTION');
+
+    try {
+      const result = await run('UPDATE appointments SET status = ? WHERE id = ?', [req.body.status, req.params.id]);
+
+      if (result.changes === 0) {
+        await run('ROLLBACK');
+        return res.status(404).json({ error: 'Lawson request not found' });
+      }
+
+      if (req.body.status === 'canceled' && existingAppointment.status !== 'canceled') {
+        await run(
+          `INSERT INTO appointment_history
+           (appointment_id, name, phone, email, date, time, status, payment_status, payment_amount_cents, square_payment_id, square_order_id, action, recorded_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            existingAppointment.id,
+            existingAppointment.name,
+            existingAppointment.phone,
+            existingAppointment.email,
+            existingAppointment.date,
+            existingAppointment.time,
+            'canceled',
+            existingAppointment.payment_status || 'not_required',
+            existingAppointment.payment_amount_cents || 0,
+            existingAppointment.square_payment_id || null,
+            existingAppointment.square_order_id || null,
+            'canceled',
+            new Date().toISOString()
+          ]
+        );
+      }
+
+      await run('COMMIT');
+    } catch (error) {
+      await run('ROLLBACK');
+      throw error;
     }
 
     res.json({ message: `Lawson request marked as ${req.body.status}.` });
@@ -464,7 +654,7 @@ app.patch('/admin/appointments/:id/status', requireAdminAuth, async (req, res) =
   }
 });
 
-app.delete('/admin/appointments/:id', requireAdminAuth, async (req, res) => {
+app.delete('/admin/appointments/:id', requireSameOrigin, requireAdminAuth, async (req, res) => {
   try {
     const result = await run('DELETE FROM appointments WHERE id = ?', [req.params.id]);
 
@@ -487,7 +677,7 @@ app.get('/admin/pricing', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.put('/admin/pricing', requireAdminAuth, async (req, res) => {
+app.put('/admin/pricing', requireSameOrigin, requireAdminAuth, async (req, res) => {
   try {
     const pricing = await updatePricing(req.body.items);
     const bookingFee = pricing.find((item) => item.isBookingFee);
@@ -501,21 +691,23 @@ app.put('/admin/pricing', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.get(['/admin', '/admin/'], (req, res) => {
+app.get([admin.entryPath, `${admin.entryPath}/`], (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.join(publicDir, 'admin-login.html'));
 });
 
-app.get('/admin-login', (req, res) => {
-  res.redirect('/admin-login.html');
+app.get(['/admin', '/admin/', '/admin-login', '/admin-login.html'], (req, res) => {
+  res.redirect('/');
 });
 
 app.get('/admin.html', (req, res) => {
   const token = getValidSessionToken(req);
 
   if (!token) {
-    return res.redirect('/admin-login.html?next=/admin.html');
+    return res.redirect(`${admin.entryPath}?next=/admin.html`);
   }
 
+  res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.join(publicDir, 'admin.html'));
 });
 
@@ -523,8 +715,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(frontendDistDir, 'index.html'));
 });
 
-app.use(express.static(publicDir, { index: false }));
-app.use(express.static(frontendDistDir));
+app.use(express.static(publicDir, { index: false, dotfiles: 'deny' }));
+app.use(express.static(frontendDistDir, { dotfiles: 'deny' }));
 
 const startServer = async () => {
   try {

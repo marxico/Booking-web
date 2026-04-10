@@ -37,7 +37,7 @@ const clearExpiredSessions = (): void => {
 };
 
 const createAdminSession = (): string => {
-  const token = crypto.randomBytes(24).toString('hex');
+  const token = crypto.randomUUID();
 
   sessions.set(token, {
     expiresAt: Date.now() + admin.sessionDurationMs
@@ -65,17 +65,21 @@ const getValidSessionToken = (req: Request): string | null => {
   return token;
 };
 
-const setSessionCookie = (res: Response, token: string): void => {
+const isSecureRequest = (req: Request): boolean => req.secure || req.get('x-forwarded-proto') === 'https';
+
+const setSessionCookie = (req: Request, res: Response, token: string): void => {
+  const secureFlag = isSecureRequest(req) ? '; Secure' : '';
+
   res.setHeader(
     'Set-Cookie',
-    `${admin.sessionCookieName}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${admin.sessionDurationMs / 1000}`
+    `${admin.sessionCookieName}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${admin.sessionDurationMs / 1000}${secureFlag}`
   );
 };
 
 const clearSessionCookie = (res: Response): void => {
   res.setHeader(
     'Set-Cookie',
-    `${admin.sessionCookieName}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`
+    `${admin.sessionCookieName}=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0`
   );
 };
 
