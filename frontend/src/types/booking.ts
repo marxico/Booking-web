@@ -3,6 +3,12 @@ export type PricingItem = {
   name: string;
   description: string;
   priceFormatted: string;
+  originalPriceFormatted?: string;
+  discountedPriceCents?: number;
+  discountType?: "none" | "percent" | "fixed";
+  discountValue?: number;
+  discountLabel?: string;
+  hasDiscount?: boolean;
   isBookingFee: boolean;
 };
 

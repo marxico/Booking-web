@@ -3,6 +3,9 @@ export interface PricingSeedItem {
   name: string;
   description: string;
   priceCents: number;
+  discountType?: 'none' | 'percent' | 'fixed';
+  discountValue?: number;
+  discountLabel?: string;
   sortOrder: number;
   isBookingFee: number;
   isActive: number;
@@ -13,6 +16,9 @@ export interface PricingRow {
   name: string;
   description: string;
   price_cents: number;
+  discount_type?: 'none' | 'percent' | 'fixed';
+  discount_value?: number;
+  discount_label?: string;
   sort_order: number;
   is_booking_fee: number;
   is_active: number;
@@ -25,6 +31,12 @@ export interface PricingItem {
   description: string;
   priceCents: number;
   priceFormatted: string;
+  originalPriceFormatted?: string;
+  discountedPriceCents?: number;
+  discountType?: 'none' | 'percent' | 'fixed';
+  discountValue?: number;
+  discountLabel?: string;
+  hasDiscount?: boolean;
   sortOrder?: number;
   isBookingFee: boolean;
   isActive: boolean;

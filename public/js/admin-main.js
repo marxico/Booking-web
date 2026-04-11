@@ -13,13 +13,20 @@ import {
   adminCalendarNextButton,
   adminCalendarPrevButton,
   adminCalendarTodayButton,
+  adminAddPricingItemButton,
   adminClearAllButton,
   adminCreateUserButton,
+  adminHeroRefreshButton,
   adminHistoryContent,
   adminHistoryList,
   adminHistoryPanel,
   adminHistoryToggleButton,
   adminLogoutButton,
+  adminOverviewActivity,
+  adminOverviewKpis,
+  adminOverviewPipeline,
+  adminOverviewRevenue,
+  adminOverviewServices,
   adminPricingForm,
   adminPricingList,
   adminPricingStatus,
@@ -45,6 +52,9 @@ let currentCalendarDate = new Date();
 let currentSession = null;
 let currentUserRoles = [];
 let isHistoryExpanded = true;
+let currentPricing = [];
+let currentAnalytics = null;
+let currentUsers = [];
 
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
@@ -110,6 +120,120 @@ const renderProfile = () => {
   adminProfileMeta.textContent = currentSession?.user
     ? `${currentSession.user.role} • ${currentSession.user.email}`
     : "Private dashboard";
+};
+
+const renderOverview = () => {
+  if (!adminOverviewKpis || !adminOverviewPipeline || !adminOverviewRevenue || !adminOverviewServices || !adminOverviewActivity) {
+    return;
+  }
+
+  const activeAppointments = currentAppointments.filter((appointment) => appointment.status !== "canceled");
+  const pendingAppointments = activeAppointments.filter((appointment) => appointment.status === "pending");
+  const acceptedAppointments = activeAppointments.filter((appointment) => appointment.status === "accepted");
+  const paidAppointments = currentAppointments.filter((appointment) => appointment.payment_status === "paid");
+  const activePricing = currentPricing.filter((item) => item.isActive);
+  const bookingFee = currentPricing.find((item) => item.isBookingFee);
+  const activeUsers = currentUsers.filter((user) => user.isActive);
+  const recentActivity = [...currentAppointments]
+    .sort((left, right) => `${right.date} ${right.time}`.localeCompare(`${left.date} ${left.time}`))
+    .slice(0, 4);
+  const historyActivity = [...currentHistory].slice(0, 3);
+
+  adminOverviewKpis.innerHTML = `
+    <article class="admin-kpi-card">
+      <span>Open requests</span>
+      <strong>${activeAppointments.length}</strong>
+      <p>${pendingAppointments.length} waiting for review</p>
+    </article>
+    <article class="admin-kpi-card">
+      <span>Accepted jobs</span>
+      <strong>${acceptedAppointments.length}</strong>
+      <p>${activeAppointments.length ? Math.round((acceptedAppointments.length / activeAppointments.length) * 100) : 0}% of active queue</p>
+    </article>
+    <article class="admin-kpi-card">
+      <span>Paid bookings</span>
+      <strong>${paidAppointments.length}</strong>
+      <p>${escapeHtml(currentAnalytics?.summary?.[3]?.value || "$0.00")} captured</p>
+    </article>
+    <article class="admin-kpi-card">
+      <span>Active team</span>
+      <strong>${activeUsers.length}</strong>
+      <p>${activePricing.length} public service${activePricing.length === 1 ? "" : "s"} live</p>
+    </article>
+  `;
+
+  adminOverviewPipeline.innerHTML = `
+    <article class="admin-overview-row">
+      <div>
+        <strong>Pending approvals</strong>
+        <span>Requests that still need a decision from the front desk.</span>
+      </div>
+      <b>${pendingAppointments.length}</b>
+    </article>
+    <article class="admin-overview-row">
+      <div>
+        <strong>Accepted jobs</strong>
+        <span>Approved appointments currently on the live board.</span>
+      </div>
+      <b>${acceptedAppointments.length}</b>
+    </article>
+    <article class="admin-overview-row">
+      <div>
+        <strong>Archived records</strong>
+        <span>History kept after cancel, clear, or restore actions.</span>
+      </div>
+      <b>${currentHistory.length}</b>
+    </article>
+    <article class="admin-overview-row">
+      <div>
+        <strong>Team access</strong>
+        <span>Admins with active access to the platform.</span>
+      </div>
+      <b>${activeUsers.length}</b>
+    </article>
+  `;
+
+  adminOverviewRevenue.innerHTML = `
+    <div class="admin-revenue-card admin-revenue-card--accent">
+      <span>Current booking fee</span>
+      <strong>${escapeHtml(bookingFee?.priceFormatted || "$0.00")}</strong>
+      <p>${escapeHtml(bookingFee?.name || "No booking fee configured")}</p>
+    </div>
+    <div class="admin-revenue-card">
+      <span>Total captured</span>
+      <strong>${escapeHtml(currentAnalytics?.summary?.[3]?.value || "$0.00")}</strong>
+      <p>${paidAppointments.length} paid booking${paidAppointments.length === 1 ? "" : "s"} processed</p>
+    </div>
+  `;
+
+  adminOverviewServices.innerHTML = activePricing.length
+    ? activePricing.slice(0, 6).map((item) => `
+      <article class="admin-service-chip">
+        <div>
+          <strong>${escapeHtml(item.name)}</strong>
+          <span>${escapeHtml(item.description || "Public service")}</span>
+        </div>
+        <b>${escapeHtml(item.priceFormatted)}</b>
+      </article>
+    `).join("")
+    : '<p class="empty-state">No public services configured yet.</p>';
+
+  const activityMarkup = [
+    ...recentActivity.map((item) => `
+      <article class="admin-activity-item">
+        <strong>${escapeHtml(item.name)}</strong>
+        <span>${escapeHtml(item.date)} at ${escapeHtml(item.time)} • ${escapeHtml(statusLabels[item.status] || item.status)}</span>
+      </article>
+    `),
+    ...historyActivity.map((item) => `
+      <article class="admin-activity-item">
+        <strong>${escapeHtml(item.name)}</strong>
+        <span>${escapeHtml(item.action || "history")} • ${escapeHtml(new Date(item.recorded_at).toLocaleString())}</span>
+      </article>
+    `)
+  ].join("");
+
+  adminOverviewActivity.innerHTML = activityMarkup || '<p class="empty-state">No recent activity yet.</p>';
 };
 
 const renderAppointments = (appointments) => {
@@ -236,6 +360,7 @@ const setHistoryExpanded = (expanded) => {
 };
 
 const renderPricing = (pricingItems) => {
+  currentPricing = pricingItems;
   adminPricingList.innerHTML = pricingItems.map((item) => `
     <article class="pricing-editor-card">
       <div class="field">
@@ -252,6 +377,26 @@ const renderPricing = (pricingItems) => {
           <input type="number" name="priceCents" min="0" step="0.01" value="${(item.priceCents / 100).toFixed(2)}" data-code="${item.code}" ${can("pricing.write") ? "" : "disabled"}>
         </div>
         <div class="field">
+          <label>Discount Type</label>
+          <select name="discountType" data-code="${item.code}" ${can("pricing.write") ? "" : "disabled"}>
+            <option value="none" ${!item.discountType || item.discountType === "none" ? "selected" : ""}>No discount</option>
+            <option value="percent" ${item.discountType === "percent" ? "selected" : ""}>Percent off</option>
+            <option value="fixed" ${item.discountType === "fixed" ? "selected" : ""}>Fixed amount off</option>
+          </select>
+        </div>
+      </div>
+      <div class="pricing-editor-grid">
+        <div class="field">
+          <label>Discount Value</label>
+          <input type="number" name="discountValue" min="0" step="1" value="${item.discountValue || 0}" data-code="${item.code}" ${can("pricing.write") ? "" : "disabled"}>
+        </div>
+        <div class="field">
+          <label>Discount Label</label>
+          <input type="text" name="discountLabel" value="${escapeHtml(item.discountLabel || "")}" data-code="${item.code}" placeholder="Spring special" ${can("pricing.write") ? "" : "disabled"}>
+        </div>
+      </div>
+      <div class="pricing-editor-grid">
+        <div class="field">
           <label>Sort Order</label>
           <input type="number" name="sortOrder" min="0" step="1" value="${item.sortOrder}" data-code="${item.code}" ${can("pricing.write") ? "" : "disabled"}>
         </div>
@@ -266,10 +411,94 @@ const renderPricing = (pricingItems) => {
           <span>Show publicly</span>
         </label>
       </div>
+      <div class="admin-panel__actions admin-panel__actions--footer">
+        <button class="btn btn-secondary admin-pricing-remove" type="button" data-code="${item.code}" ${can("pricing.write") ? "" : "disabled"}>Remove Service</button>
+      </div>
       <input type="hidden" name="code" value="${item.code}">
     </article>
   `).join("");
 };
+
+const createPricingCode = () => `service_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+const addPricingItem = () => {
+  const nextSortOrder = currentPricing.length ? Math.max(...currentPricing.map((item) => Number(item.sortOrder || 0))) + 1 : 1;
+
+  currentPricing = [
+    ...currentPricing,
+    {
+      code: createPricingCode(),
+      name: "",
+      description: "",
+      priceCents: 0,
+      priceFormatted: "$0.00",
+      originalPriceFormatted: "$0.00",
+      discountedPriceCents: 0,
+      discountType: "none",
+      discountValue: 0,
+      discountLabel: "",
+      hasDiscount: false,
+      sortOrder: nextSortOrder,
+      isBookingFee: false,
+      isActive: true
+    }
+  ];
+
+  renderPricing(currentPricing);
+  adminPricingStatus.textContent = "New service added. Fill it in and save pricing.";
+};
+
+const removePricingItem = (code) => {
+  currentPricing = currentPricing.filter((item) => item.code !== code);
+  renderPricing(currentPricing);
+  adminPricingStatus.textContent = "Service removed. Save pricing to apply the change.";
+};
+
+const updatePricingItemState = (code, fieldName, nextValue) => {
+  let didUpdate = false;
+
+  currentPricing = currentPricing.map((item) => {
+    if (item.code !== code) {
+      if (fieldName === "isBookingFee" && nextValue) {
+        return {
+          ...item,
+          isBookingFee: false
+        };
+      }
+
+      return item;
+    }
+
+    didUpdate = true;
+    return {
+      ...item,
+      [fieldName]: nextValue
+    };
+  });
+
+  if (!didUpdate) {
+    return;
+  }
+
+  if (fieldName === "isBookingFee" && nextValue) {
+    adminPricingList.querySelectorAll('input[name="isBookingFee"]').forEach((input) => {
+      input.checked = input.dataset.code === code;
+    });
+  }
+};
+
+const normalizePricingItemsForSave = () => currentPricing.map((item) => ({
+  code: String(item.code || "").trim(),
+  name: String(item.name || "").trim(),
+  description: String(item.description || "").trim(),
+  priceCents: Number.isFinite(Number(item.priceCents)) ? Math.max(0, Math.round(Number(item.priceCents))) : 0,
+  discountType: item.discountType || "none",
+  discountValue: Number.isFinite(Number(item.discountValue)) ? Math.max(0, Math.round(Number(item.discountValue))) : 0,
+  discountLabel: String(item.discountLabel || "").trim(),
+  sortOrder: Number.isFinite(Number(item.sortOrder)) ? Math.max(0, Math.round(Number(item.sortOrder))) : 0,
+  isBookingFee: Boolean(item.isBookingFee),
+  isActive: Boolean(item.isActive)
+}));
 
 const renderAnalytics = (analytics) => {
   adminAnalyticsSummary.innerHTML = analytics.summary.map((item) => `
@@ -366,6 +595,7 @@ const loadAdminAppointments = async () => {
     if (!result) return;
     if (!response.ok) throw new Error(result.error || "Could not load service requests.");
     renderAppointments(result.appointments);
+    renderOverview();
     logClientInfo("admin-appointments-loaded", `${result.appointments.length} records`);
     adminStatus.textContent = `Loaded ${result.appointments.filter((appointment) => appointment.status !== "canceled").length} active Lawson request(s).`;
   } catch (error) {
@@ -382,6 +612,7 @@ const loadAdminHistory = async () => {
     if (!result) return;
     if (!response.ok) throw new Error(result.error || "Could not load request history.");
     renderHistory(result.history);
+    renderOverview();
   } catch {
     adminHistoryList.innerHTML = '<p class="empty-state">Could not load request history.</p>';
   }
@@ -396,6 +627,7 @@ const loadAdminPricing = async () => {
     if (!result) return;
     if (!response.ok) throw new Error(result.error || "Could not load pricing.");
     renderPricing(result.pricing);
+    renderOverview();
     adminPricingStatus.textContent = can("pricing.write") ? "Pricing loaded." : "Read-only pricing view.";
   } catch (error) {
     adminPricingList.innerHTML = '<p class="empty-state">Could not load pricing.</p>';
@@ -412,7 +644,9 @@ const loadAdminAnalytics = async () => {
     const result = await parseAdminResponse(response, "Could not load analytics.");
     if (!result) return;
     if (!response.ok) throw new Error(result.error || "Could not load analytics.");
+    currentAnalytics = result.analytics;
     renderAnalytics(result.analytics);
+    renderOverview();
     logClientInfo("admin-analytics-loaded");
   } catch (error) {
     logClientError("admin-analytics-failed", error.message);
@@ -430,8 +664,10 @@ const loadAdminUsers = async () => {
     const result = await parseAdminResponse(response, "Could not load admin users.");
     if (!result) return;
     if (!response.ok) throw new Error(result.error || "Could not load admin users.");
+    currentUsers = result.users;
     renderRoleOptions(result.roles);
     renderUsers(result.users);
+    renderOverview();
     adminUsersStatus.textContent = `${result.users.length} admin user(s) loaded.`;
   } catch (error) {
     adminUsersList.innerHTML = '<p class="empty-state">Could not load admin users.</p>';
@@ -474,6 +710,11 @@ const updateAppointmentStatus = async (button) => {
 };
 
 adminRefreshButton.addEventListener("click", refreshAll);
+adminHeroRefreshButton?.addEventListener("click", refreshAll);
+adminAddPricingItemButton?.addEventListener("click", () => {
+  if (!can("pricing.write")) return;
+  addPricingItem();
+});
 adminTabs.forEach((tab) => tab.addEventListener("click", () => setActiveAdminView(tab.dataset.adminView)));
 adminCalendarPrevButton.addEventListener("click", () => { currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1, 1); renderCalendar(); });
 adminCalendarTodayButton.addEventListener("click", () => { currentCalendarDate = new Date(); renderCalendar(); });
@@ -537,17 +778,10 @@ adminPricingForm.addEventListener("submit", async (event) => {
 
   adminSavePricingButton.disabled = true;
   adminPricingStatus.textContent = "Saving pricing...";
-  const items = Array.from(adminPricingList.querySelectorAll(".pricing-editor-card")).map((card) => ({
-    code: card.querySelector('input[name="code"]').value,
-    name: card.querySelector('input[name="name"]').value.trim(),
-    description: card.querySelector('input[name="description"]').value.trim(),
-    priceCents: Math.round(Number.parseFloat(card.querySelector('input[name="priceCents"]').value || "0") * 100),
-    sortOrder: Number.parseInt(card.querySelector('input[name="sortOrder"]').value || "0", 10),
-    isBookingFee: card.querySelector('input[name="isBookingFee"]').checked,
-    isActive: card.querySelector('input[name="isActive"]').checked
-  }));
 
   try {
+    const items = normalizePricingItemsForSave();
+
     const response = await fetch("/admin/pricing", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -564,6 +798,53 @@ adminPricingForm.addEventListener("submit", async (event) => {
   } finally {
     adminSavePricingButton.disabled = false;
   }
+});
+
+const handlePricingEditorChange = (event) => {
+  const field = event.target.closest("[data-code]");
+
+  if (!field || !field.name) {
+    return;
+  }
+
+  const code = field.dataset.code;
+  const fieldName = field.name;
+
+  if (!code) {
+    return;
+  }
+
+  if (field.type === "checkbox") {
+    updatePricingItemState(code, fieldName, field.checked);
+    return;
+  }
+
+  if (fieldName === "priceCents") {
+    const value = Number.parseFloat(field.value || "0");
+    updatePricingItemState(code, fieldName, Number.isFinite(value) ? Math.round(value * 100) : 0);
+    return;
+  }
+
+  if (fieldName === "discountValue" || fieldName === "sortOrder") {
+    const value = Number.parseInt(field.value || "0", 10);
+    updatePricingItemState(code, fieldName, Number.isFinite(value) ? value : 0);
+    return;
+  }
+
+  updatePricingItemState(code, fieldName, field.value);
+};
+
+adminPricingList.addEventListener("input", handlePricingEditorChange);
+adminPricingList.addEventListener("change", handlePricingEditorChange);
+
+adminPricingList.addEventListener("click", (event) => {
+  const removeButton = event.target.closest(".admin-pricing-remove");
+
+  if (!removeButton) {
+    return;
+  }
+
+  removePricingItem(removeButton.dataset.code);
 });
 
 adminUserForm.addEventListener("submit", async (event) => {
@@ -645,10 +926,11 @@ const initializeAdminDashboard = async () => {
   applyPermissionVisibility();
   setHistoryExpanded(true);
   renderCalendar();
+  renderOverview();
   refreshAll();
 
   const firstVisibleTab = Array.from(adminTabs).find((tab) => !tab.hidden);
-  setActiveAdminView(firstVisibleTab?.dataset.adminView || "requests");
+  setActiveAdminView(firstVisibleTab?.dataset.adminView || "overview");
 };
 
 initializeAdminDashboard();

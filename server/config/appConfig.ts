@@ -100,6 +100,9 @@ export const defaultPricing: PricingSeedItem[] = [
     name: 'Mobile Diagnostic Visit',
     description: 'Required payment to lock in a booking request and dispatch an on-site diagnostic visit.',
     priceCents: 9000,
+    discountType: 'none',
+    discountValue: 0,
+    discountLabel: '',
     sortOrder: 1,
     isBookingFee: 1,
     isActive: 1
@@ -109,6 +112,9 @@ export const defaultPricing: PricingSeedItem[] = [
     name: 'Brake Service Inspection',
     description: 'Pricing starts here for brake inspection and recommended service planning.',
     priceCents: 12500,
+    discountType: 'none',
+    discountValue: 0,
+    discountLabel: '',
     sortOrder: 2,
     isBookingFee: 0,
     isActive: 1
@@ -118,6 +124,9 @@ export const defaultPricing: PricingSeedItem[] = [
     name: 'Battery & Charging Check',
     description: 'Mobile battery diagnosis, charging system review, and replacement planning.',
     priceCents: 11000,
+    discountType: 'none',
+    discountValue: 0,
+    discountLabel: '',
     sortOrder: 3,
     isBookingFee: 0,
     isActive: 1
@@ -127,6 +136,9 @@ export const defaultPricing: PricingSeedItem[] = [
     name: 'Emergency Assistance',
     description: 'Fast roadside mechanical help for urgent issues that need an experienced mobile mechanic.',
     priceCents: 15000,
+    discountType: 'none',
+    discountValue: 0,
+    discountLabel: '',
     sortOrder: 4,
     isBookingFee: 0,
     isActive: 1

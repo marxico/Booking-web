@@ -4,7 +4,7 @@ import { installClientLogging, logClientInfo } from "./client-logger.js";
 import { dateInput } from "./dom.js";
 import { initializeBooking } from "./booking.js";
 import { initializeNavigation } from "./navigation.js";
-import { loadPricing } from "./pricing.js";
+import { initializePricingLiveUpdates, loadPricing } from "./pricing.js";
 
 const syncBookingData = () => {
   loadAppointments();
@@ -21,4 +21,5 @@ initializeAvailability();
 initializeAppointments();
 initializeBooking();
 loadPricing();
+initializePricingLiveUpdates();
 syncBookingData();

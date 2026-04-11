@@ -25,6 +25,13 @@ export const loadBookingSetup = async () => {
   };
 };
 
+export const loadPricingVersion = async () => {
+  const response = await fetch("/pricing/version");
+  const result = await parseJsonResponse(response, "Could not load pricing version.");
+
+  return String(result.version || "");
+};
+
 export const loadAvailableTimes = async (date: string) => {
   const response = await fetch(`/available?date=${encodeURIComponent(date)}`);
   const result = await parseJsonResponse(response, "Could not load available times.");

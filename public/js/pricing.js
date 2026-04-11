@@ -4,6 +4,9 @@ import {
   paymentAmountBadge,
   pricingList
 } from "./dom.js";
+import { logClientError, logClientInfo } from "./client-logger.js";
+
+let currentPricingVersion = "";
 
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
@@ -31,10 +34,14 @@ const renderPricing = (items) => {
     <article class="service-card reveal visible">
       <div class="service-meta">
         <span class="service-tag">${item.isBookingFee ? "Booking Fee" : "Service"}</span>
-        <span class="price">${escapeHtml(item.priceFormatted)}</span>
+        <div class="pricing-display">
+          ${item.hasDiscount ? `<span class="price price--original">${escapeHtml(item.originalPriceFormatted)}</span>` : ""}
+          <span class="price">${escapeHtml(item.priceFormatted)}</span>
+        </div>
       </div>
       <h3>${escapeHtml(item.name)}</h3>
       <p>${escapeHtml(item.description)}</p>
+      ${item.hasDiscount ? `<span class="pricing-discount-badge">${escapeHtml(item.discountLabel || "Special offer")}</span>` : ""}
       <a class="service-link" href="#appointment">${item.isBookingFee ? "Pay and reserve" : "Request service"}</a>
     </article>
   `).join("");
@@ -98,6 +105,7 @@ export const loadPricing = async () => {
     renderPricing(pricingItems);
     syncServiceCards(pricingItems);
     syncBookingFeeHighlights(pricingItems);
+    return pricingItems;
   } catch (error) {
     pricingList.innerHTML = `
       <article class="service-card">
@@ -109,5 +117,41 @@ export const loadPricing = async () => {
         <p>${escapeHtml(error.message || "Please try again later.")}</p>
       </article>
     `;
+    throw error;
   }
+};
+
+const loadPricingVersion = async () => {
+  const response = await fetch("/pricing/version");
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error || "Could not load pricing version.");
+  }
+
+  return String(result.version || "");
+};
+
+export const initializePricingLiveUpdates = async () => {
+  try {
+    currentPricingVersion = await loadPricingVersion();
+  } catch (error) {
+    logClientError("pricing-version-init-failed", error.message || "Could not initialize pricing refresh.");
+  }
+
+  window.setInterval(async () => {
+    try {
+      const nextVersion = await loadPricingVersion();
+
+      if (!nextVersion || nextVersion === currentPricingVersion) {
+        return;
+      }
+
+      currentPricingVersion = nextVersion;
+      const pricingItems = await loadPricing();
+      logClientInfo("pricing-auto-refreshed", `${pricingItems.length} services`);
+    } catch (error) {
+      logClientError("pricing-auto-refresh-failed", error.message || "Could not refresh pricing.");
+    }
+  }, 8000);
 };

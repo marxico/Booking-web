@@ -32,7 +32,7 @@ const {
   validateLoginPassword,
   validatePassword
 } = require('./services/validation');
-const { formatMoney, getAllPricing, getPublicPricing, getBookingFee, updatePricing } = require('./services/pricingService');
+const { formatMoney, getAllPricing, getPublicPricing, getPublicPricingVersion, getBookingFee, updatePricing } = require('./services/pricingService');
 const {
   isMockMode,
   isSquareMode,
@@ -526,9 +526,20 @@ const getAdminAnalytics = async () => {
 app.get('/pricing', async (req, res) => {
   try {
     const pricing = await getPublicPricing();
+    res.setHeader('Cache-Control', 'no-store');
     res.json({ pricing });
   } catch (error) {
     res.status(500).json({ error: mapDatabaseError(error, 'Could not load pricing.') });
+  }
+});
+
+app.get('/pricing/version', async (req, res) => {
+  try {
+    const version = await getPublicPricingVersion();
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ version });
+  } catch (error) {
+    res.status(500).json({ error: mapDatabaseError(error, 'Could not load pricing version.') });
   }
 });
 
@@ -1058,19 +1069,17 @@ app.get([admin.entryPath, `${admin.entryPath}/`], (req, res) => {
   res.sendFile(path.join(publicDir, 'admin-login.html'));
 });
 
-app.get(['/admin', '/admin/', '/admin-login', '/admin-login.html'], (req, res) => {
-  res.redirect('/');
+app.get('/admin.html', (req, res) => {
+  return res.redirect('/admin');
 });
 
-app.get('/admin.html', (req, res) => {
-  const user = getCurrentAdminUser(req);
-
-  if (!user) {
-    return res.redirect(`${admin.entryPath}?next=/admin.html`);
-  }
-
+app.get(/^\/admin(?:\/.*)?$/, (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  res.sendFile(path.join(publicDir, 'admin.html'));
+  res.sendFile(path.join(frontendDistDir, 'index.html'));
+});
+
+app.get(['/admin-login', '/admin-login.html'], (req, res) => {
+  res.redirect('/');
 });
 
 app.get('/', (req, res) => {
@@ -1093,7 +1102,7 @@ const startServer = async () => {
       logger.info('Routes ready', {
         bookingUrl: `http://localhost:${port}/`,
         adminLoginUrl: `http://localhost:${port}${admin.entryPath}`,
-        adminDashboardUrl: `http://localhost:${port}/admin.html`
+        adminDashboardUrl: `http://localhost:${port}/admin`
       });
       logger.info('Live backend logs', {
         logFile: logger.backendLogPath

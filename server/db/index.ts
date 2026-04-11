@@ -71,13 +71,16 @@ const seedDefaultPricing = async (): Promise<void> => {
   for (const item of defaultPricing) {
     await run(
       `INSERT OR IGNORE INTO service_pricing
-       (code, name, description, price_cents, sort_order, is_booking_fee, is_active, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       (code, name, description, price_cents, discount_type, discount_value, discount_label, sort_order, is_booking_fee, is_active, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         item.code,
         item.name,
         item.description,
         item.priceCents,
+        item.discountType || 'none',
+        item.discountValue || 0,
+        item.discountLabel || '',
         item.sortOrder,
         item.isBookingFee,
         item.isActive,
@@ -257,6 +260,9 @@ const ensureSchema = async (): Promise<void> => {
     name TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
     price_cents INTEGER NOT NULL DEFAULT 0,
+    discount_type TEXT NOT NULL DEFAULT 'none',
+    discount_value INTEGER NOT NULL DEFAULT 0,
+    discount_label TEXT NOT NULL DEFAULT '',
     sort_order INTEGER NOT NULL DEFAULT 0,
     is_booking_fee INTEGER NOT NULL DEFAULT 0,
     is_active INTEGER NOT NULL DEFAULT 1,
@@ -269,6 +275,18 @@ const ensureSchema = async (): Promise<void> => {
 
   if (!(await columnExists('service_pricing', 'sort_order'))) {
     await run('ALTER TABLE service_pricing ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0');
+  }
+
+  if (!(await columnExists('service_pricing', 'discount_type'))) {
+    await run("ALTER TABLE service_pricing ADD COLUMN discount_type TEXT NOT NULL DEFAULT 'none'");
+  }
+
+  if (!(await columnExists('service_pricing', 'discount_value'))) {
+    await run('ALTER TABLE service_pricing ADD COLUMN discount_value INTEGER NOT NULL DEFAULT 0');
+  }
+
+  if (!(await columnExists('service_pricing', 'discount_label'))) {
+    await run("ALTER TABLE service_pricing ADD COLUMN discount_label TEXT NOT NULL DEFAULT ''");
   }
 
   if (!(await columnExists('service_pricing', 'is_booking_fee'))) {

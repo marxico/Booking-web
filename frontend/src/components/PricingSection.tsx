@@ -19,10 +19,14 @@ export function PricingSection({ pricing }: PricingSectionProps) {
             <article className="service-card reveal visible" key={item.code}>
               <div className="service-meta">
                 <span className="service-tag">{item.isBookingFee ? "Booking Fee" : "Service"}</span>
-                <span className="price">{item.priceFormatted}</span>
+                <div className="pricing-display">
+                  {item.hasDiscount ? <span className="price price--original">{item.originalPriceFormatted}</span> : null}
+                  <span className="price">{item.priceFormatted}</span>
+                </div>
               </div>
               <h3>{item.name}</h3>
               <p>{item.description}</p>
+              {item.hasDiscount ? <span className="pricing-discount-badge">{item.discountLabel || "Special offer"}</span> : null}
               <a className="service-link" href="#appointment">{item.isBookingFee ? "Pay and reserve" : "Request service"}</a>
             </article>
           )) : (
