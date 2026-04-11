@@ -29,17 +29,27 @@
             </div>
           </div>
 
-          <form class="admin-login-form" id="adminLoginForm">
+          <form class="admin-login-form" id="adminLoginForm" novalidate>
             <div class="field">
-              <label for="adminUsername">Username</label>
-              <input id="adminUsername" name="username" type="text" autocomplete="username" required>
+              <label for="adminUsername">Username or email</label>
+              <input id="adminUsername" name="username" type="text" autocomplete="username" required minlength="3" maxlength="120">
             </div>
             <div class="field">
               <label for="adminPassword">Password</label>
-              <input id="adminPassword" name="password" type="password" autocomplete="current-password" required>
+              <input id="adminPassword" name="password" type="password" autocomplete="current-password" required maxlength="128">
             </div>
             <button class="btn btn-primary" type="submit">Sign In</button>
           </form>
+
+          <div class="admin-login-divider" id="googleLoginDivider" hidden><span>or</span></div>
+          <section class="admin-google-login" id="googleLoginSection" hidden>
+            <div class="admin-google-login__header">
+              <h3>Continue with Google</h3>
+              <p>Use an authorized Lawson admin Google account.</p>
+            </div>
+            <div class="admin-google-login__button" id="googleLoginButton"></div>
+            <p class="admin-google-login__hint" id="googleLoginHint">Google sign-in is loading.</p>
+          </section>
 
           <div class="admin-status" id="adminLoginStatus" aria-live="polite"></div>
         </div>
@@ -47,6 +57,7 @@
     </section>
   </main>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script type="module" src="admin-login.js"></script>
 </body>
 </html>

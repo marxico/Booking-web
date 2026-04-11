@@ -15,12 +15,16 @@ const getNextUrl = () => {
   return normalizeNextUrl(params.get("next"));
 };
 
-export const ensureAdminSession = async () => {
+export const getAdminSession = async () => {
   const response = await fetch("/admin/session", {
     credentials: "same-origin"
   });
-  const result = await response.json();
-  return Boolean(result.authenticated);
+  return response.json();
+};
+
+export const ensureAdminSession = async () => {
+  const session = await getAdminSession();
+  return session;
 };
 
 export const redirectToAdminLogin = () => {
@@ -31,3 +35,5 @@ export const redirectToAdminLogin = () => {
 export const redirectAfterLogin = () => {
   window.location.replace(getNextUrl());
 };
+
+export const hasAdminPermission = (session, permission) => Boolean(session?.user?.permissions?.includes(permission));

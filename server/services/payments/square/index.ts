@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { SquareClient, SquareError } from 'square';
 
 import { square } from '../../../config/appConfig';
+import logger from '../../../utils/logger';
 import type { AppError, PaymentInput, PaymentRecord } from '../../../types';
 
 const hasRealCredential = (value: string): boolean => Boolean(value) && !String(value).startsWith('REPLACE_WITH_');
@@ -57,8 +58,20 @@ const createPayment = async ({ sourceId, amountCents, referenceId, note }: Payme
       note
     });
 
+    logger.info('Square payment approved', {
+      referenceId,
+      amountCents,
+      locationId: square.locationId,
+      paymentId: response.payment?.id || ''
+    });
+
     return response.payment || null;
   } catch (error) {
+    logger.error('Square payment failed', {
+      referenceId,
+      amountCents,
+      message: mapSquareError(error, 'Square could not process the payment.')
+    });
     const wrappedError = new Error(
       mapSquareError(error, 'Square could not process the payment. Please verify the card details and try again.')
     ) as AppError;

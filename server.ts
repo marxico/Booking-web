@@ -1,5 +1,12 @@
 const logger = require('./server/utils/logger');
 const { startServer } = require('./server/app');
+const { admin, port } = require('./server/config/appConfig');
+
+logger.info('Booting Booking server', {
+  port,
+  bookingUrl: `http://localhost:${port}/`,
+  adminLoginUrl: `http://localhost:${port}${admin.entryPath}`
+});
 
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught exception', {

@@ -1,6 +1,7 @@
 import sqlite3 from 'sqlite3';
 
-import { dbPath, defaultPricing } from '../config/appConfig';
+import { dbPath, defaultAdminUsers, defaultPricing } from '../config/appConfig';
+import { hashPassword } from '../services/adminSecurity';
 import logger from '../utils/logger';
 
 type QueryParam = string | number | null;
@@ -81,6 +82,73 @@ const seedDefaultPricing = async (): Promise<void> => {
         item.isBookingFee,
         item.isActive,
         new Date().toISOString()
+      ]
+    );
+  }
+};
+
+const seedDefaultAdminUsers = async (): Promise<void> => {
+  for (const user of defaultAdminUsers) {
+    const existing = await get<{
+      id: number;
+      username: string;
+      email: string;
+      display_name: string;
+      role: string;
+      auth_provider: string;
+      is_active: number;
+    }>(
+      `SELECT id, username, email, display_name, role, auth_provider, is_active
+       FROM admin_users
+       WHERE lower(email) = ? OR lower(username) = ?
+       LIMIT 1`,
+      [user.email.toLowerCase(), user.username.toLowerCase()]
+    );
+
+    if (existing) {
+      const needsSync = existing.email !== user.email.toLowerCase()
+        || existing.display_name !== user.displayName
+        || existing.role !== user.role
+        || existing.auth_provider !== user.authProvider
+        || existing.is_active !== (user.isActive ?? 1);
+
+      if (needsSync) {
+        await run(
+          `UPDATE admin_users
+           SET email = ?, display_name = ?, role = ?, auth_provider = ?, is_active = ?, updated_at = ?
+           WHERE id = ?`,
+          [
+            user.email.toLowerCase(),
+            user.displayName,
+            user.role,
+            user.authProvider,
+            user.isActive ?? 1,
+            new Date().toISOString(),
+            existing.id
+          ]
+        );
+      }
+
+      continue;
+    }
+
+    const now = new Date().toISOString();
+
+    await run(
+      `INSERT INTO admin_users
+       (username, email, display_name, password_hash, role, auth_provider, google_subject, is_active, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        user.username,
+        user.email.toLowerCase(),
+        user.displayName,
+        user.authProvider === 'google' ? null : hashPassword(user.password),
+        user.role,
+        user.authProvider,
+        user.googleSubject || null,
+        user.isActive ?? 1,
+        now,
+        now
       ]
     );
   }
@@ -215,7 +283,59 @@ const ensureSchema = async (): Promise<void> => {
     await run(`ALTER TABLE service_pricing ADD COLUMN updated_at TEXT NOT NULL DEFAULT '${formatSchemaDefault(new Date().toISOString())}'`);
   }
 
+  await run(`CREATE TABLE IF NOT EXISTS admin_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    display_name TEXT NOT NULL,
+    password_hash TEXT,
+    role TEXT NOT NULL DEFAULT 'viewer',
+    auth_provider TEXT NOT NULL DEFAULT 'password',
+    google_subject TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    last_login_at TEXT
+  )`);
+
+  if (!(await columnExists('admin_users', 'display_name'))) {
+    await run("ALTER TABLE admin_users ADD COLUMN display_name TEXT NOT NULL DEFAULT 'Admin User'");
+  }
+
+  if (!(await columnExists('admin_users', 'password_hash'))) {
+    await run('ALTER TABLE admin_users ADD COLUMN password_hash TEXT');
+  }
+
+  if (!(await columnExists('admin_users', 'role'))) {
+    await run("ALTER TABLE admin_users ADD COLUMN role TEXT NOT NULL DEFAULT 'viewer'");
+  }
+
+  if (!(await columnExists('admin_users', 'auth_provider'))) {
+    await run("ALTER TABLE admin_users ADD COLUMN auth_provider TEXT NOT NULL DEFAULT 'password'");
+  }
+
+  if (!(await columnExists('admin_users', 'google_subject'))) {
+    await run('ALTER TABLE admin_users ADD COLUMN google_subject TEXT');
+  }
+
+  if (!(await columnExists('admin_users', 'is_active'))) {
+    await run('ALTER TABLE admin_users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1');
+  }
+
+  if (!(await columnExists('admin_users', 'created_at'))) {
+    await run(`ALTER TABLE admin_users ADD COLUMN created_at TEXT NOT NULL DEFAULT '${formatSchemaDefault(new Date().toISOString())}'`);
+  }
+
+  if (!(await columnExists('admin_users', 'updated_at'))) {
+    await run(`ALTER TABLE admin_users ADD COLUMN updated_at TEXT NOT NULL DEFAULT '${formatSchemaDefault(new Date().toISOString())}'`);
+  }
+
+  if (!(await columnExists('admin_users', 'last_login_at'))) {
+    await run('ALTER TABLE admin_users ADD COLUMN last_login_at TEXT');
+  }
+
   await seedDefaultPricing();
+  await seedDefaultAdminUsers();
 };
 
 export { db, run, get, all, ensureSchema };

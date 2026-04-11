@@ -17,6 +17,11 @@
         <span>Private dashboard</span>
       </span>
     </a>
+    <div class="admin-topbar__identity" id="adminIdentityCard">
+      <span class="admin-topbar__identity-label">Signed in as</span>
+      <strong id="adminProfileName">Lawson Admin</strong>
+      <span id="adminProfileMeta">super_admin</span>
+    </div>
     <div class="admin-topbar__actions">
       <button class="btn btn-secondary" id="adminRefreshButton" type="button">Refresh</button>
       <button class="btn btn-secondary" id="adminLogoutButton" type="button">Log Out</button>
@@ -43,6 +48,10 @@
             <span>Calendar</span>
             <strong>Month view</strong>
           </button>
+          <button class="admin-tab" type="button" data-admin-view="analytics" data-admin-permission="analytics.read">
+            <span>Analytics</span>
+            <strong>Live performance</strong>
+          </button>
           <button class="admin-tab" type="button" data-admin-view="pricing">
             <span>Pricing</span>
             <strong>Public rates</strong>
@@ -50,6 +59,10 @@
           <button class="admin-tab" type="button" data-admin-view="history">
             <span>History</span>
             <strong>Archived requests</strong>
+          </button>
+          <button class="admin-tab" type="button" data-admin-view="team" data-admin-permission="users.read">
+            <span>Team</span>
+            <strong>Roles & access</strong>
           </button>
         </aside>
 
@@ -90,6 +103,34 @@
             </div>
           </div>
 
+          <div class="admin-view" id="adminViewAnalytics" data-admin-view-panel="analytics">
+            <div class="admin-panel">
+              <div class="admin-panel__header">
+                <div>
+                  <span class="admin-panel__eyebrow">Analytics</span>
+                  <h2>Performance Snapshot</h2>
+                  <p>Track conversion, demand, booking channels, and upcoming workload from the admin desk.</p>
+                </div>
+              </div>
+              <div class="admin-status" id="adminAnalyticsStatus" aria-live="polite"></div>
+              <div class="admin-analytics-grid" id="adminAnalyticsSummary"></div>
+              <div class="admin-insights-grid">
+                <section class="admin-insight-card">
+                  <h3>Pipeline breakdown</h3>
+                  <div class="admin-breakdown-list" id="adminAnalyticsBreakdown"></div>
+                </section>
+                <section class="admin-insight-card">
+                  <h3>Booking sources</h3>
+                  <div class="admin-breakdown-list" id="adminAnalyticsSources"></div>
+                </section>
+                <section class="admin-insight-card">
+                  <h3>Recent bookings</h3>
+                  <div class="admin-mini-list" id="adminAnalyticsRecent"></div>
+                </section>
+              </div>
+            </div>
+          </div>
+
           <div class="admin-view" id="adminViewPricing" data-admin-view-panel="pricing">
             <div class="admin-panel">
               <div class="admin-panel__header">
@@ -124,6 +165,55 @@
               <div class="admin-panel__content" id="adminHistoryContent">
                 <div class="admin-list" id="adminHistoryList"></div>
               </div>
+            </div>
+          </div>
+
+          <div class="admin-view" id="adminViewTeam" data-admin-view-panel="team">
+            <div class="admin-panel">
+              <div class="admin-panel__header">
+                <div>
+                  <span class="admin-panel__eyebrow">Team</span>
+                  <h2>Admin Users & Roles</h2>
+                  <p>Manage who can access the Lawson dashboard and what each person is allowed to do.</p>
+                </div>
+              </div>
+              <form class="admin-team-form" id="adminUserForm" novalidate>
+                <div class="pricing-editor-grid">
+                  <div class="field">
+                    <label for="adminUserDisplayName">Name</label>
+                    <input id="adminUserDisplayName" name="displayName" type="text" required minlength="2" maxlength="80" pattern="[A-Za-zÀ-ÿ0-9 .,'-]{2,80}" title="Use 2 to 80 valid characters.">
+                  </div>
+                  <div class="field">
+                    <label for="adminUserEmail">Email</label>
+                    <input id="adminUserEmail" name="email" type="email" required maxlength="120">
+                  </div>
+                  <div class="field">
+                    <label for="adminUserUsername">Username</label>
+                    <input id="adminUserUsername" name="username" type="text" required minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" title="Use 3 to 32 letters, numbers, dots, dashes, or underscores.">
+                  </div>
+                  <div class="field">
+                    <label for="adminUserRole">Role</label>
+                    <select id="adminUserRole" name="role"></select>
+                  </div>
+                  <div class="field">
+                    <label for="adminUserPassword">Password</label>
+                    <input id="adminUserPassword" name="password" type="password" minlength="8" maxlength="128">
+                  </div>
+                  <div class="field">
+                    <label for="adminUserProvider">Login method</label>
+                    <select id="adminUserProvider" name="authProvider">
+                      <option value="password">Password</option>
+                      <option value="hybrid">Password + Google</option>
+                      <option value="google">Google only</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="admin-panel__actions admin-panel__actions--footer">
+                  <button class="btn btn-primary" id="adminCreateUserButton" type="submit">Add Admin User</button>
+                </div>
+              </form>
+              <div class="admin-status" id="adminUsersStatus" aria-live="polite"></div>
+              <div class="admin-list" id="adminUsersList"></div>
             </div>
           </div>
         </div>

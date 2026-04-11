@@ -94,3 +94,64 @@ export interface AppError extends Error {
   statusCode?: number;
   code?: string;
 }
+
+export type AdminRole = 'super_admin' | 'manager' | 'analyst' | 'viewer';
+
+export type AdminPermission =
+  | 'appointments.read'
+  | 'appointments.write'
+  | 'history.read'
+  | 'pricing.read'
+  | 'pricing.write'
+  | 'analytics.read'
+  | 'users.read'
+  | 'users.write';
+
+export interface AdminUserSeed {
+  username: string;
+  email: string;
+  displayName: string;
+  password: string;
+  role: AdminRole;
+  authProvider: 'password' | 'google' | 'hybrid';
+  googleSubject?: string;
+  isActive?: number;
+}
+
+export interface AdminUserRow {
+  id: number;
+  username: string;
+  email: string;
+  display_name: string;
+  password_hash: string | null;
+  role: AdminRole;
+  auth_provider: 'password' | 'google' | 'hybrid';
+  google_subject: string | null;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+  last_login_at: string | null;
+}
+
+export interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  displayName: string;
+  role: AdminRole;
+  authProvider: 'password' | 'google' | 'hybrid';
+  googleSubject: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string | null;
+}
+
+export interface AdminSessionUser {
+  id: number;
+  username: string;
+  email: string;
+  displayName: string;
+  role: AdminRole;
+  permissions: AdminPermission[];
+}

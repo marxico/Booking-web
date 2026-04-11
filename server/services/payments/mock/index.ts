@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 
 import { square } from '../../../config/appConfig';
+import logger from '../../../utils/logger';
 import type { MockCardScenario, PaymentInput, PaymentRecord } from '../../../types';
 
 const mockCards: MockCardScenario[] = [
@@ -37,16 +38,32 @@ const createPayment = async ({ amountCents, referenceId, note, mockCard }: Payme
   const selectedCard = mockCards.find((card) => card.number === normalizedNumber) || mockCards[0];
 
   if (selectedCard.result === 'declined') {
+    logger.warn('Mock payment declined', {
+      referenceId,
+      amountCents,
+      scenario: selectedCard.label
+    });
     const error = new Error('Test payment declined. Use the approved test card number or switch to a different scenario.');
     Object.assign(error, { statusCode: 402 });
     throw error;
   }
 
   if (selectedCard.result === 'review') {
+    logger.warn('Mock payment flagged for review', {
+      referenceId,
+      amountCents,
+      scenario: selectedCard.label
+    });
     const error = new Error('Test payment flagged for review. Try the approved mock card to complete the booking.');
     Object.assign(error, { statusCode: 402 });
     throw error;
   }
+
+  logger.info('Mock payment approved', {
+    referenceId,
+    amountCents,
+    scenario: selectedCard.label
+  });
 
   return {
     id: `mock-payment-${crypto.randomUUID()}`,

@@ -33,7 +33,17 @@ const writeLog = (level: 'info' | 'warn' | 'error', message: string, meta?: Reco
 
   fs.appendFileSync(backendLogPath, `${line}\n`, 'utf8');
 
-  // Keep logging file-only so detached/background Windows shells cannot crash the app with EPIPE.
+  const consoleMethod = level === 'error'
+    ? console.error
+    : level === 'warn'
+      ? console.warn
+      : console.log;
+
+  try {
+    consoleMethod(line);
+  } catch (error) {
+    // Keep file logging as the reliable fallback if console output fails.
+  }
 };
 
 const logger = {

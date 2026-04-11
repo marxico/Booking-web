@@ -2,9 +2,11 @@ import crypto from 'node:crypto';
 import type { Request, Response } from 'express';
 
 import { admin } from '../config/appConfig';
+import type { AdminSessionUser } from '../types';
 
 interface SessionRecord {
   expiresAt: number;
+  user: AdminSessionUser;
 }
 
 const sessions = new Map<string, SessionRecord>();
@@ -36,11 +38,12 @@ const clearExpiredSessions = (): void => {
   });
 };
 
-const createAdminSession = (): string => {
+const createAdminSession = (user: AdminSessionUser): string => {
   const token = crypto.randomUUID();
 
   sessions.set(token, {
-    expiresAt: Date.now() + admin.sessionDurationMs
+    expiresAt: Date.now() + admin.sessionDurationMs,
+    user
   });
 
   return token;
@@ -63,6 +66,16 @@ const getValidSessionToken = (req: Request): string | null => {
   }
 
   return token;
+};
+
+const getSessionUser = (req: Request): AdminSessionUser | null => {
+  const token = getValidSessionToken(req);
+
+  if (!token) {
+    return null;
+  }
+
+  return sessions.get(token)?.user || null;
 };
 
 const isSecureRequest = (req: Request): boolean => req.secure || req.get('x-forwarded-proto') === 'https';
@@ -90,6 +103,7 @@ const deleteSession = (token: string): void => {
 export {
   createAdminSession,
   getValidSessionToken,
+  getSessionUser,
   setSessionCookie,
   clearSessionCookie,
   deleteSession
