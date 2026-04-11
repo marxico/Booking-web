@@ -1,62 +1,62 @@
 # Booking-web
 
-Aplicacion de reservas con frontend React y backend modular en TypeScript. El flujo actual deja preparado que una cita solo se reserve despues de pagar el importe obligatorio con Square o con el modo mock de pruebas.
+Booking application with a React frontend and a modular TypeScript backend. The current flow is set up so an appointment can only be booked after paying the required amount through Square or the mock test mode.
 
-## Ejecutar localmente
+## Run locally
 
-1. Instala dependencias:
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-2. Crea tu archivo `.env` a partir del ejemplo y completa las credenciales de Square:
+2. Create your `.env` file from the example and fill in the Square credentials:
 
 ```bash
 copy .env.example .env
 ```
 
-Variables importantes:
+Important variables:
 
-- `SQUARE_ENVIRONMENT`: `sandbox` o `production`
-- `SQUARE_ACCESS_TOKEN`: access token de Square
-- `SQUARE_APP_ID`: application id para Web Payments SDK
-- `SQUARE_LOCATION_ID`: location id donde se registrara el cobro
+- `SQUARE_ENVIRONMENT`: `sandbox` or `production`
+- `SQUARE_ACCESS_TOKEN`: Square access token
+- `SQUARE_APP_ID`: application ID for the Web Payments SDK
+- `SQUARE_LOCATION_ID`: location ID where the charge will be registered
 
-Si no completas las variables de Square y el booking fee sigue activo en el panel admin, el sitio deshabilita la reserva online hasta que Square quede configurado.
+If you do not fill in the Square variables and the booking fee is still enabled in the admin panel, the site disables online booking until Square is configured.
 
-3. Inicia el servidor:
+3. Start the server:
 
 ```bash
 npm start
 ```
 
-4. Abre en tu navegador:
+4. Open in your browser:
 
 ```text
 http://localhost:3000
 ```
 
-## Estructura
+## Structure
 
-- `frontend/`: frontend publico con React + Vite
-- `public/`: admin estatico y assets compartidos
-- `server/`: configuracion, base de datos y servicios del backend
-- `server.ts`: bootstrap principal del servidor
-- `appointments.db`: base de datos SQLite local
-- `.env` y `.env.example`: variables necesarias para entorno local
+- `frontend/`: public frontend with React + Vite
+- `public/`: static admin and shared assets
+- `server/`: backend configuration, database, and services
+- `server.ts`: main server bootstrap
+- `appointments.db`: local SQLite database
+- `.env` and `.env.example`: variables required for local development
 
 ## Square
 
-Cuando Square esta configurado:
+When Square is configured:
 
-- El frontend carga Square Web Payments SDK segun el entorno configurado.
-- El formulario tokeniza la tarjeta en el navegador.
-- El backend cobra el booking fee configurado y luego guarda la cita.
-- El panel admin muestra estado de pago, monto y `square_payment_id`.
+- The frontend loads the Square Web Payments SDK according to the configured environment.
+- The form tokenizes the card in the browser.
+- The backend charges the configured booking fee and then saves the appointment.
+- The admin panel shows payment status, amount, and `square_payment_id`.
 
-## Precios
+## Pricing
 
-- Los precios publicos se sirven desde la tabla `service_pricing`.
-- El admin puede editar nombre, descripcion, precio, orden y visibilidad de cada servicio.
-- Exactamente un servicio debe estar marcado como `Required booking fee`; ese importe es el que se cobra para reservar.
+- Public prices are served from the `service_pricing` table.
+- The admin can edit the name, description, price, order, and visibility of each service.
+- Exactly one service must be marked as `Required booking fee`; that amount is what gets charged to complete a booking.

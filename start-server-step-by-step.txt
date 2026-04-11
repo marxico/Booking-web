@@ -133,6 +133,6 @@ Notes
 - Admin users and roles can be managed inside the Team tab in the admin dashboard.
 
 
-npm run dev:all para abrir backend y frontend juntos
-npm run restart:all para reiniciar ambos
-npm run stop:all para apagarlos
+npm run dev:all to open backend and frontend together
+npm run restart:all to restart both
+npm run stop:all to shut them down
