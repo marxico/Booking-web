@@ -1,5 +1,6 @@
 import { loadAppointments, initializeAppointments } from "./appointments.js";
 import { initializeAvailability, loadAvailableTimes } from "./availability.js";
+import { installClientLogging, logClientInfo } from "./client-logger.js";
 import { dateInput } from "./dom.js";
 import { initializeBooking } from "./booking.js";
 import { initializeNavigation } from "./navigation.js";
@@ -13,6 +14,8 @@ const syncBookingData = () => {
   }
 };
 
+installClientLogging("public-booking");
+logClientInfo("public-app-init");
 initializeNavigation();
 initializeAvailability();
 initializeAppointments();

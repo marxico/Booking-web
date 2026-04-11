@@ -36,12 +36,20 @@ export type BookingFormData = {
   time: string;
 };
 
+export type BookingFieldName = keyof BookingFormData;
+
+export type BookingFieldErrors = Partial<Record<BookingFieldName, string>>;
+
 export type MockCardFormData = {
   cardholder: string;
   number: string;
   expiry: string;
   cvv: string;
 };
+
+export type MockCardFieldName = keyof MockCardFormData;
+
+export type MockCardFieldErrors = Partial<Record<MockCardFieldName, string>>;
 
 export type BookingMessage = {
   text: string;

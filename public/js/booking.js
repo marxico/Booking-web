@@ -6,12 +6,15 @@ import {
   paymentPanel,
   paymentStatus,
   paymentTitle,
+  phoneInput,
   squareCard,
   submitButton,
   successMessage
 } from "./dom.js";
 import { loadAppointments } from "./appointments.js";
 import { loadAvailableTimes, setTimeOptions } from "./availability.js";
+import { logClientError, logClientInfo } from "./client-logger.js";
+import { sanitizePhoneInput, validateBookingFormData } from "./validation.js";
 
 const today = new Date().toISOString().split("T")[0];
 const squareScriptUrls = {
@@ -104,6 +107,7 @@ const loadSquareConfig = async () => {
   }
 
   squareConfig = result;
+  logClientInfo("square-config-loaded", `mode=${result.paymentMode} enabled=${result.enabled}`);
   paymentAmountBadge.textContent = result.serviceCallOutFeeFormatted;
 
   if (result.enabled) {
@@ -122,6 +126,11 @@ const loadSquareConfig = async () => {
 
 export const initializeBooking = () => {
   dateInput.min = today;
+  if (phoneInput) {
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = sanitizePhoneInput(phoneInput.value);
+    });
+  }
   setSubmitState(true, "Loading payment...");
 
   loadSquareConfig().catch((error) => {
@@ -148,6 +157,8 @@ export const initializeBooking = () => {
     const time = formData.get("time");
 
     try {
+      logClientInfo("booking-submit-start", `${date} ${time}`);
+      validateBookingFormData({ name, phone, email, date, time });
       setSubmitState(true, squareConfig?.enabled ? "Processing payment..." : "Requesting appointment...");
       let sourceId;
 
@@ -181,6 +192,7 @@ export const initializeBooking = () => {
         throw new Error(result.error || "Could not create appointment.");
       }
 
+      logClientInfo("booking-submit-success", result.message);
       showMessage(result.message, "success");
       form.reset();
       dateInput.min = today;
@@ -190,6 +202,7 @@ export const initializeBooking = () => {
         loadAvailableTimes(dateInput.value);
       }
     } catch (error) {
+      logClientError("booking-submit-failed", error.message || "Error connecting to the server.");
       showMessage(error.message || "Error connecting to the server.", "error");
     } finally {
       setSubmitState(false);

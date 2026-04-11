@@ -6,9 +6,16 @@
   "scripts": {
     "start": "tsx server.ts",
     "stop": "powershell -Command \"$connections = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($connections) { $connections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; Write-Host 'Stopped server on port 3000.' } else { Write-Host 'No server running on port 3000.' }\"",
+    "restart": "npm run stop && npm start",
     "build": "npm run typecheck && vite build --config frontend/vite.config.mjs",
     "dev:client": "vite --config frontend/vite.config.mjs",
+    "dev:all": "start powershell -NoExit -Command npm start && start powershell -NoExit -Command npm run dev:client",
+    "stop:client": "powershell -Command \"$connections = Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue; if ($connections) { $connections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; Write-Host 'Stopped frontend dev server on port 5173.' } else { Write-Host 'No frontend dev server running on port 5173.' }\"",
+    "restart:client": "npm run stop:client && npm run dev:client",
+    "stop:all": "npm run stop && npm run stop:client",
+    "restart:all": "npm run stop:all && start powershell -NoExit -Command npm start && start powershell -NoExit -Command npm run dev:client",
     "typecheck": "tsc --noEmit",
+    "logs:all": "npm run logs:backend",
     "logs:backend": "powershell -ExecutionPolicy Bypass -File scripts/watch-backend-logs.ps1",
     "terminal:backend": "powershell -ExecutionPolicy Bypass -File scripts/open-backend-terminal.ps1"
   },

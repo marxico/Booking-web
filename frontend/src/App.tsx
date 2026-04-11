@@ -14,8 +14,27 @@ import { SiteHeader } from "./components/SiteHeader";
 import { useActiveSection } from "./hooks/useActiveSection";
 import { useSquarePayment } from "./hooks/useSquarePayment";
 import { loadAvailableTimes, loadBookingSetup, submitBooking } from "./services/bookingApi";
+import { sendClientLog } from "./services/clientLogger";
 import { formatMockCardCvv, formatMockCardExpiry, formatMockCardNumber } from "./services/mockCardFormatting";
-import type { BookingFormData, BookingMessage, MockCardFormData, MockCardPreset, PricingItem, SquareConfig } from "./types/booking";
+import {
+  getBookingFieldError,
+  getBookingFormErrors,
+  getMockCardFieldError,
+  getMockCardFieldErrors,
+  sanitizePhoneInput,
+  validateBookingFormData,
+  validateMockCardFormData
+} from "./services/validation";
+import type {
+  BookingFieldErrors,
+  BookingFormData,
+  BookingMessage,
+  MockCardFieldErrors,
+  MockCardFormData,
+  MockCardPreset,
+  PricingItem,
+  SquareConfig
+} from "./types/booking";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -41,6 +60,8 @@ function App() {
   const [timePlaceholder, setTimePlaceholder] = useState("Select a date first");
   const [formData, setFormData] = useState<BookingFormData>(emptyFormData);
   const [mockCard, setMockCard] = useState<MockCardFormData>(defaultMockCard);
+  const [fieldErrors, setFieldErrors] = useState<BookingFieldErrors>({});
+  const [mockCardErrors, setMockCardErrors] = useState<MockCardFieldErrors>({});
   const [message, setMessage] = useState<BookingMessage>({ text: "", type: "success" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const activeSection = useActiveSection();
@@ -57,13 +78,35 @@ function App() {
         const setup = await loadBookingSetup();
         setPricing(setup.pricing);
         setSquareConfig(setup.squareConfig);
+        sendClientLog("info", {
+          source: "frontend-react",
+          event: "booking-setup-loaded",
+          message: `paymentMode=${setup.squareConfig?.paymentMode || "unknown"}`
+        });
       } catch (error) {
+        sendClientLog("error", {
+          source: "frontend-react",
+          event: "booking-setup-failed",
+          message: error.message || "Could not initialize the booking page."
+        });
         setMessage({ text: error.message || "Could not initialize the booking page.", type: "error" });
       }
     };
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!message.text) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setMessage((current) => current.text ? { ...current, text: "" } : current);
+    }, 4200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [message]);
 
   useEffect(() => {
     if (!formData.date) {
@@ -88,12 +131,30 @@ function App() {
 
   const handleFormChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-
-    setFormData((current) => ({
-      ...current,
-      [name]: value,
+    const normalizedValue = name === "phone" ? sanitizePhoneInput(value) : value;
+    const nextFormData = {
+      ...formData,
+      [name]: normalizedValue,
       ...(name === "date" ? { time: "" } : {})
-    }));
+    };
+
+    setFormData(nextFormData);
+    setFieldErrors((current) => {
+      const nextErrors = { ...current };
+      const error = getBookingFieldError(name as keyof BookingFormData, nextFormData);
+
+      if (error) {
+        nextErrors[name as keyof BookingFormData] = error;
+      } else {
+        delete nextErrors[name as keyof BookingFormData];
+      }
+
+      if (name === "date") {
+        delete nextErrors.time;
+      }
+
+      return nextErrors;
+    });
   };
 
   const handleMockCardChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -105,11 +166,24 @@ function App() {
         : name === "cvv"
           ? formatMockCardCvv(value)
           : value;
-
-    setMockCard((current) => ({
-      ...current,
+    const nextMockCard = {
+      ...mockCard,
       [name]: formattedValue
-    }));
+    };
+
+    setMockCard(nextMockCard);
+    setMockCardErrors((current) => {
+      const nextErrors = { ...current };
+      const error = getMockCardFieldError(name as keyof MockCardFormData, nextMockCard);
+
+      if (error) {
+        nextErrors[name as keyof MockCardFormData] = error;
+      } else {
+        delete nextErrors[name as keyof MockCardFormData];
+      }
+
+      return nextErrors;
+    });
   };
 
   const applyMockCard = (card: MockCardPreset) => {
@@ -119,6 +193,7 @@ function App() {
       expiry: card.expiry,
       cvv: card.cvv
     });
+    setMockCardErrors({});
     setMessage({
       text: `${card.label} loaded. ${card.description}`,
       type: card.result === "approved" ? "success" : "error"
@@ -130,6 +205,29 @@ function App() {
     setIsSubmitting(true);
 
     try {
+      sendClientLog("info", {
+        source: "frontend-react",
+        event: "booking-submit-start",
+        message: `${formData.date} ${formData.time}`
+      });
+
+      const nextFieldErrors = getBookingFormErrors(formData);
+      const nextMockCardErrors = squareConfig?.paymentMode === "mock" ? getMockCardFieldErrors(mockCard) : {};
+
+      setFieldErrors(nextFieldErrors);
+      setMockCardErrors(nextMockCardErrors);
+
+      if (Object.keys(nextFieldErrors).length || Object.keys(nextMockCardErrors).length) {
+        setMessage({ text: "", type: "error" });
+        return;
+      }
+
+      validateBookingFormData(formData);
+
+      if (squareConfig?.paymentMode === "mock") {
+        validateMockCardFormData(mockCard);
+      }
+
       if (squareConfig?.paymentMode === "square" && squareConfig?.paymentRequired && !squareConfig?.enabled) {
         throw new Error("Online booking is disabled until Square is configured.");
       }
@@ -144,12 +242,24 @@ function App() {
         mockCard: squareConfig?.paymentMode === "mock" ? mockCard : undefined
       });
 
+      sendClientLog("info", {
+        source: "frontend-react",
+        event: "booking-submit-success",
+        message: result.message
+      });
       setMessage({ text: result.message, type: "success" });
       setFormData(emptyFormData);
       setMockCard(defaultMockCard);
+      setFieldErrors({});
+      setMockCardErrors({});
       setAvailableTimes([]);
       setTimePlaceholder("Select a date first");
     } catch (error) {
+      sendClientLog("error", {
+        source: "frontend-react",
+        event: "booking-submit-failed",
+        message: error.message || "Error connecting to the server."
+      });
       setMessage({ text: error.message || "Error connecting to the server.", type: "error" });
     } finally {
       setIsSubmitting(false);
@@ -177,7 +287,9 @@ function App() {
         <AppointmentSection
           today={today}
           formData={formData}
+          fieldErrors={fieldErrors}
           mockCard={mockCard}
+          mockCardErrors={mockCardErrors}
           message={message}
           availableTimes={availableTimes}
           timePlaceholder={timePlaceholder}

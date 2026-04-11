@@ -94,11 +94,11 @@
         </div>
         <div class="appointment-layout reveal">
           <div class="form-card">
-            <form id="appointmentForm">
+            <form id="appointmentForm" novalidate>
               <div class="form-grid">
-                <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" placeholder="Your name" autocomplete="name" required></div>
-                <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" placeholder="(901) 555-0123" autocomplete="tel" required></div>
-                <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" placeholder="name@example.com" autocomplete="email" required></div>
+                <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" placeholder="Your name" autocomplete="name" required minlength="2" maxlength="80" pattern="[A-Za-zÀ-ÿ0-9 .,'-]{2,80}" title="Use 2 to 80 valid characters."></div>
+                <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" placeholder="(901) 555-0123" autocomplete="tel" required minlength="10" maxlength="20" pattern="\+?[0-9().\-\s]{10,20}" title="Use only numbers and phone symbols like + ( ) - ."></div>
+                <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" placeholder="name@example.com" autocomplete="email" required maxlength="120"></div>
                 <div class="field"><label for="date">Date</label><input id="date" name="date" type="date" required></div>
                 <div class="field"><label for="time">Time</label><select id="time" name="time" required><option value="" selected disabled>Select a date first</option></select></div>
               </div>

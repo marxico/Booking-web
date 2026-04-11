@@ -6,6 +6,7 @@ export const submitButton = form?.querySelector('button[type="submit"]');
 export const successMessage = document.getElementById("successMessage");
 export const revealItems = document.querySelectorAll(".reveal");
 export const dateInput = document.getElementById("date");
+export const phoneInput = document.getElementById("phone");
 export const timeSelect = document.getElementById("time");
 export const paymentPanel = document.getElementById("paymentPanel");
 export const paymentTitle = document.getElementById("paymentTitle");

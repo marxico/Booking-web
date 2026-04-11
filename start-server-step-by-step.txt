@@ -1,0 +1,138 @@
+How to Start the Server Step by Step
+====================================
+
+Project folder:
+C:\Users\Marxico\Desktop\Booking
+
+1. Open a terminal in the project folder
+   You can use PowerShell in:
+   C:\Users\Marxico\Desktop\Booking
+
+2. Make sure dependencies are installed
+   Run:
+   npm install
+
+3. Check the environment file
+   Make sure the file `.env` exists in the project root.
+
+   Minimum recommended values:
+   PORT=3000
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=admin
+   ADMIN_EMAIL=admin@lawson.local
+   ADMIN_DISPLAY_NAME=Lawson Admin
+   ADMIN_ROLE=super_admin
+   ADMIN_ENTRY_PATH=/lawson-portal
+
+   Optional for Google login:
+   GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
+
+4. Start the backend server
+   Run:
+   npm start
+
+   Now the terminal will also show:
+   - the booking URL
+   - the admin URL
+   - backend request logs
+   - backend errors
+   - the log file path
+
+5. Wait until the terminal shows the server started message
+   The app normally runs on:
+   http://localhost:3000
+
+6. Open the public booking site
+   Visit:
+   http://localhost:3000
+
+7. Open the admin login
+   Visit:
+   http://localhost:3000/lawson-portal
+
+8. Login with the default admin user
+   Username: admin
+   Password: admin
+
+   Or use:
+   Email: admin@lawson.local
+   Password: admin
+
+9. Stop the server when you are done
+   In the terminal where it is running, press:
+   Ctrl + C
+
+Frontend dev server
+-------------------
+
+If you start the frontend separately with:
+npm run dev:client
+
+It usually runs on:
+http://localhost:5173
+
+To stop the frontend dev server from another terminal, run:
+npm run stop:client
+
+Restart commands
+----------------
+
+Start backend and frontend together in new terminals:
+npm run dev:all
+
+Restart backend:
+npm run restart
+
+Restart frontend dev server:
+npm run restart:client
+
+Stop backend and frontend together:
+npm run stop:all
+
+Restart backend and frontend together in new terminals:
+npm run restart:all
+
+Watch backend and frontend event logs together:
+npm run logs:all
+
+Extra useful commands
+---------------------
+
+Run type check:
+npm run typecheck
+
+Build frontend:
+npm run build
+
+Stop anything already running on port 3000:
+npm run stop
+
+Stop the frontend dev server on port 5173:
+npm run stop:client
+
+Restart backend:
+npm run restart
+
+Restart frontend:
+npm run restart:client
+
+Start backend and frontend together:
+npm run dev:all
+
+Restart both backend and frontend:
+npm run restart:all
+
+Watch backend + frontend event logs:
+npm run logs:all
+
+Notes
+-----
+
+- If port 3000 is busy, run `npm run stop` first and then `npm start`.
+- If Google login does not appear, check that `GOOGLE_CLIENT_ID` is set in `.env`.
+- Admin users and roles can be managed inside the Team tab in the admin dashboard.
+
+
+npm run dev:all para abrir backend y frontend juntos
+npm run restart:all para reiniciar ambos
+npm run stop:all para apagarlos
