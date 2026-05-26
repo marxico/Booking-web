@@ -1,4 +1,4 @@
-const DEFAULT_ADMIN_TARGET = "/admin.html";
+const DEFAULT_ADMIN_TARGET = "/admin";
 const ADMIN_ENTRY_PATH = "/lawson-portal";
 
 const normalizeNextUrl = (next) => {

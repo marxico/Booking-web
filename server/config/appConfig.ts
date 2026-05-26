@@ -6,8 +6,9 @@ const rootDir = path.resolve(__dirname, '..', '..');
 
 export const publicDir = path.join(rootDir, 'public');
 export const frontendDistDir = path.join(rootDir, 'frontend', 'dist');
-export const dbPath = path.join(rootDir, 'appointments.db');
+export const dbPath = path.resolve(rootDir, process.env.DB_PATH || path.join('data', 'production.sqlite'));
 export const port = Number.parseInt(process.env.PORT || '3000', 10);
+export const siteUrl = String(process.env.SITE_URL || `http://localhost:${port}`).replace(/\/+$/, '');
 export const allTimes = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'] as const;
 export const appointmentStatuses = ['pending', 'accepted', 'canceled'] as const;
 
@@ -86,12 +87,16 @@ const parseAdminUsersSeed = (): AdminUserSeed[] => {
 export const defaultAdminUsers = parseAdminUsersSeed();
 
 export const square = {
-  paymentProviderMode: (process.env.PAYMENT_PROVIDER_MODE || 'mock').toLowerCase(),
-  environment: (process.env.SQUARE_ENVIRONMENT || 'sandbox').toLowerCase(),
+  environment: (process.env.SQUARE_ENVIRONMENT || 'production').toLowerCase(),
   accessToken: process.env.SQUARE_ACCESS_TOKEN || '',
   appId: process.env.SQUARE_APP_ID || '',
   locationId: process.env.SQUARE_LOCATION_ID || '',
   currency: process.env.SQUARE_CURRENCY || 'USD'
+};
+
+export const turnstile = {
+  siteKey: process.env.TURNSTILE_SITE_KEY || '',
+  secretKey: process.env.TURNSTILE_SECRET_KEY || ''
 };
 
 export const defaultPricing: PricingSeedItem[] = [

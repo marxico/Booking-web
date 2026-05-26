@@ -44,11 +44,6 @@ export const useSquarePayment = (squareConfig: SquareConfig | null) => {
       return;
     }
 
-    if (squareConfig.paymentMode === "mock") {
-      setPaymentStatusText("Test payment mode is active. Bookings will be approved with a simulated payment.");
-      return;
-    }
-
     if (squareConfig.enabled) {
       setPaymentStatusText("Loading secure card entry...");
       return;
@@ -59,11 +54,11 @@ export const useSquarePayment = (squareConfig: SquareConfig | null) => {
       return;
     }
 
-    setPaymentStatusText("Square is not configured yet. Booking requests will still be saved without charging a card.");
+    setPaymentStatusText("Square is not configured yet. Online booking is disabled until secure payments are ready.");
   }, [squareConfig]);
 
   useEffect(() => {
-    if (squareConfig?.paymentMode !== "square" || !squareConfig?.enabled || !cardContainerRef.current || squareCardRef.current) {
+    if (!squareConfig?.enabled || !cardContainerRef.current || squareCardRef.current) {
       return;
     }
 

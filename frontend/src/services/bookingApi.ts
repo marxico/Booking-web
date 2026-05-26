@@ -1,4 +1,4 @@
-import type { BookingFormData, MockCardFormData } from "../types/booking";
+import type { BookingFormData } from "../types/booking";
 
 const parseJsonResponse = async (response: Response, fallbackMessage: string) => {
   const result = await response.json();
@@ -42,11 +42,11 @@ export const loadAvailableTimes = async (date: string) => {
 export const submitBooking = async ({
   formData,
   sourceId,
-  mockCard
+  turnstileToken
 }: {
   formData: BookingFormData;
   sourceId?: string;
-  mockCard?: MockCardFormData;
+  turnstileToken?: string;
 }) => {
   const response = await fetch("/book", {
     method: "POST",
@@ -56,7 +56,7 @@ export const submitBooking = async ({
     body: JSON.stringify({
       ...formData,
       sourceId,
-      mockCard
+      turnstileToken
     })
   });
 

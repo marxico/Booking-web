@@ -1,7 +1,16 @@
 import sqlite3 from 'sqlite3';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { dbPath, defaultAdminUsers, defaultPricing } from '../config/appConfig';
 import { hashPassword } from '../services/adminSecurity';
+import {
+  contactEmailHash,
+  contactPhoneHash,
+  decryptField,
+  encryptField,
+  isEncryptedField
+} from '../services/secureFields';
 import logger from '../utils/logger';
 
 type QueryParam = string | number | null;
@@ -13,6 +22,9 @@ interface RunResult {
 }
 
 const sqlite = sqlite3.verbose();
+
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
 const db = new sqlite.Database(dbPath, (error) => {
   if (error) {
     logger.error('Error connecting to the database', { message: error.message });
@@ -115,16 +127,17 @@ const seedDefaultAdminUsers = async (): Promise<void> => {
         || existing.auth_provider !== user.authProvider
         || existing.is_active !== (user.isActive ?? 1);
 
-      if (needsSync) {
+      if (needsSync || user.authProvider !== 'google') {
         await run(
           `UPDATE admin_users
-           SET email = ?, display_name = ?, role = ?, auth_provider = ?, is_active = ?, updated_at = ?
+           SET email = ?, display_name = ?, role = ?, auth_provider = ?, password_hash = ?, is_active = ?, updated_at = ?
            WHERE id = ?`,
           [
             user.email.toLowerCase(),
             user.displayName,
             user.role,
             user.authProvider,
+            user.authProvider === 'google' ? null : hashPassword(user.password),
             user.isActive ?? 1,
             new Date().toISOString(),
             existing.id
@@ -157,7 +170,60 @@ const seedDefaultAdminUsers = async (): Promise<void> => {
   }
 };
 
+const migrateEncryptedAppointmentTable = async (tableName: 'appointments' | 'appointment_history'): Promise<void> => {
+  const rows = await all<{
+    id: number;
+    name: string;
+    phone: string;
+    email: string;
+    vehicle_details: string;
+    contact_email_hash?: string;
+    contact_phone_hash?: string;
+  }>(
+    `SELECT id, name, phone, email, vehicle_details, contact_email_hash, contact_phone_hash
+     FROM ${tableName}`
+  );
+
+  for (const row of rows) {
+    const name = decryptField(row.name);
+    const phone = decryptField(row.phone);
+    const email = decryptField(row.email);
+    const vehicle = decryptField(row.vehicle_details);
+    const needsEncryption = !isEncryptedField(row.name)
+      || !isEncryptedField(row.phone)
+      || !isEncryptedField(row.email)
+      || !isEncryptedField(row.vehicle_details)
+      || !row.contact_email_hash
+      || !row.contact_phone_hash;
+
+    if (!needsEncryption) {
+      continue;
+    }
+
+    await run(
+      `UPDATE ${tableName}
+       SET name = ?, phone = ?, email = ?, vehicle_details = ?, contact_email_hash = ?, contact_phone_hash = ?
+       WHERE id = ?`,
+      [
+        encryptField(name),
+        encryptField(phone),
+        encryptField(email),
+        encryptField(vehicle),
+        contactEmailHash(email),
+        contactPhoneHash(phone),
+        row.id
+      ]
+    );
+  }
+};
+
 const ensureSchema = async (): Promise<void> => {
+  try {
+    await run('PRAGMA foreign_keys = ON');
+  } catch (error) {
+    logger.warn('Could not enable foreign key checks', { message: (error as Error).message });
+  }
+
   try {
     await run('PRAGMA journal_mode = WAL');
   } catch (error) {
@@ -175,6 +241,10 @@ const ensureSchema = async (): Promise<void> => {
     name TEXT NOT NULL,
     phone TEXT NOT NULL DEFAULT '',
     email TEXT NOT NULL,
+    contact_email_hash TEXT NOT NULL DEFAULT '',
+    contact_phone_hash TEXT NOT NULL DEFAULT '',
+    vehicle_details TEXT NOT NULL DEFAULT '',
+    service_requested TEXT NOT NULL DEFAULT '',
     date TEXT NOT NULL,
     time TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
@@ -188,6 +258,22 @@ const ensureSchema = async (): Promise<void> => {
 
   if (!(await columnExists('appointments', 'phone'))) {
     await run("ALTER TABLE appointments ADD COLUMN phone TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointments', 'service_requested'))) {
+    await run("ALTER TABLE appointments ADD COLUMN service_requested TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointments', 'vehicle_details'))) {
+    await run("ALTER TABLE appointments ADD COLUMN vehicle_details TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointments', 'contact_email_hash'))) {
+    await run("ALTER TABLE appointments ADD COLUMN contact_email_hash TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointments', 'contact_phone_hash'))) {
+    await run("ALTER TABLE appointments ADD COLUMN contact_phone_hash TEXT NOT NULL DEFAULT ''");
   }
 
   if (!(await columnExists('appointments', 'status'))) {
@@ -218,12 +304,24 @@ const ensureSchema = async (): Promise<void> => {
     await run("ALTER TABLE appointments ADD COLUMN booking_source TEXT NOT NULL DEFAULT 'manual'");
   }
 
+  await run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_appointments_active_slot
+    ON appointments(date, time)
+    WHERE status != 'canceled'`);
+
+  await run('CREATE INDEX IF NOT EXISTS idx_appointments_contact_email_hash ON appointments(contact_email_hash)');
+  await run('CREATE INDEX IF NOT EXISTS idx_appointments_contact_phone_hash ON appointments(contact_phone_hash)');
+  await run('CREATE INDEX IF NOT EXISTS idx_appointments_status_date ON appointments(status, date)');
+
   await run(`CREATE TABLE IF NOT EXISTS appointment_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     appointment_id INTEGER,
     name TEXT NOT NULL,
     phone TEXT NOT NULL DEFAULT '',
     email TEXT NOT NULL,
+    contact_email_hash TEXT NOT NULL DEFAULT '',
+    contact_phone_hash TEXT NOT NULL DEFAULT '',
+    vehicle_details TEXT NOT NULL DEFAULT '',
+    service_requested TEXT NOT NULL DEFAULT '',
     date TEXT NOT NULL,
     time TEXT NOT NULL,
     status TEXT NOT NULL,
@@ -237,6 +335,22 @@ const ensureSchema = async (): Promise<void> => {
 
   if (!(await columnExists('appointment_history', 'phone'))) {
     await run("ALTER TABLE appointment_history ADD COLUMN phone TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointment_history', 'service_requested'))) {
+    await run("ALTER TABLE appointment_history ADD COLUMN service_requested TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointment_history', 'vehicle_details'))) {
+    await run("ALTER TABLE appointment_history ADD COLUMN vehicle_details TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointment_history', 'contact_email_hash'))) {
+    await run("ALTER TABLE appointment_history ADD COLUMN contact_email_hash TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!(await columnExists('appointment_history', 'contact_phone_hash'))) {
+    await run("ALTER TABLE appointment_history ADD COLUMN contact_phone_hash TEXT NOT NULL DEFAULT ''");
   }
 
   if (!(await columnExists('appointment_history', 'payment_status'))) {
@@ -254,6 +368,11 @@ const ensureSchema = async (): Promise<void> => {
   if (!(await columnExists('appointment_history', 'square_order_id'))) {
     await run('ALTER TABLE appointment_history ADD COLUMN square_order_id TEXT');
   }
+
+  await run('CREATE INDEX IF NOT EXISTS idx_appointment_history_recorded_at ON appointment_history(recorded_at)');
+
+  await migrateEncryptedAppointmentTable('appointments');
+  await migrateEncryptedAppointmentTable('appointment_history');
 
   await run(`CREATE TABLE IF NOT EXISTS service_pricing (
     code TEXT PRIMARY KEY,

@@ -1,11 +1,24 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { operationsRequests } from "../../data/mock/adminOperationsMock";
+import { loadAdminAppointments, type AdminAppointment } from "../../services/adminAppointmentsApi";
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function OperationsCalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date("2026-04-01"));
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [appointments, setAppointments] = useState<AdminAppointment[]>([]);
+  const [message, setMessage] = useState("Loading calendar...");
+
+  useEffect(() => {
+    loadAdminAppointments()
+      .then((items) => {
+        setAppointments(items);
+        setMessage("");
+      })
+      .catch((error) => {
+        setMessage(error instanceof Error ? error.message : "Could not load calendar.");
+      });
+  }, []);
 
   const days = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -25,12 +38,12 @@ export function OperationsCalendarPage() {
       cells.push({
         key: iso,
         day,
-        appointments: operationsRequests.filter((item) => item.date === iso && item.status !== "Canceled")
+        appointments: appointments.filter((item) => item.date === iso && item.status !== "Canceled")
       });
     }
 
     return cells;
-  }, [currentDate]);
+  }, [appointments, currentDate]);
 
   return (
     <section className="admin-page-grid">
@@ -38,14 +51,16 @@ export function OperationsCalendarPage() {
         <div>
           <p className="admin-page-hero-card__eyebrow">Operations</p>
           <h2>Calendar</h2>
-          <p>Monthly scheduling board, adapted from the old admin calendar into the React layout.</p>
+          <p>Live scheduling board from real customer bookings.</p>
         </div>
         <div className="admin-pagination__actions">
           <button className="admin-button" type="button" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}>Previous</button>
-          <button className="admin-button" type="button" onClick={() => setCurrentDate(new Date("2026-04-01"))}>Today</button>
+          <button className="admin-button" type="button" onClick={() => setCurrentDate(new Date())}>Today</button>
           <button className="admin-button" type="button" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}>Next</button>
         </div>
       </div>
+
+      {message ? <p className="admin-status">{message}</p> : null}
 
       <article className="admin-panel-react">
         <div className="admin-calendar-grid">
@@ -61,7 +76,7 @@ export function OperationsCalendarPage() {
               {cell.appointments.length ? cell.appointments.map((item) => (
                 <div key={item.id} className="admin-calendar-chip">
                   <strong>{item.time}</strong>
-                  <span>{item.customer}</span>
+                  <span>{item.name}</span>
                 </div>
               )) : <p className="empty-state">No appointments</p>}
             </div>

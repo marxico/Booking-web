@@ -64,6 +64,11 @@ export function AdminLayout() {
     }
   };
 
+  const openMobileMenu = () => {
+    setIsSidebarCollapsed(false);
+    setIsSidebarOpen((current) => !current);
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -102,12 +107,30 @@ export function AdminLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle("admin-menu-open", isSidebarOpen);
+
+    return () => document.body.classList.remove("admin-menu-open");
+  }, [isSidebarOpen]);
+
   if (isCheckingSession) {
     return <div className="admin-state-card">Checking admin session...</div>;
   }
 
   return (
     <div className="admin-shell">
+      {isSidebarOpen ? (
+        <button
+          className="admin-sidebar-backdrop"
+          type="button"
+          aria-label="Close admin menu"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      ) : null}
       <aside
         className={[
           "admin-sidebar-react",
@@ -128,9 +151,16 @@ export function AdminLayout() {
         <button
           className="admin-sidebar-react__collapse"
           type="button"
-          onClick={() => setIsSidebarCollapsed((current) => !current)}
+          onClick={() => {
+            if (isSidebarOpen) {
+              setIsSidebarOpen(false);
+              return;
+            }
+
+            setIsSidebarCollapsed((current) => !current);
+          }}
         >
-          {isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          {isSidebarOpen ? "Close menu" : isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         </button>
 
         <nav className="admin-sidebar-react__nav" aria-label="Admin navigation">
@@ -163,7 +193,8 @@ export function AdminLayout() {
             <button
               className="admin-topbar-react__menu"
               type="button"
-              onClick={() => setIsSidebarOpen((current) => !current)}
+              onClick={openMobileMenu}
+              aria-expanded={isSidebarOpen}
             >
               Menu
             </button>

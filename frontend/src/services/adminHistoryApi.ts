@@ -6,6 +6,8 @@ export interface AdminHistoryItem {
   name: string;
   phone: string;
   email: string;
+  vehicle: string;
+  service: string;
   date: string;
   time: string;
   status: string;
@@ -27,6 +29,8 @@ export async function loadAdminHistory(): Promise<AdminHistoryItem[]> {
     name: String(item.name || ""),
     phone: String(item.phone || ""),
     email: String(item.email || ""),
+    vehicle: String(item.vehicle_details || ""),
+    service: String(item.service_requested || "Service request"),
     date: String(item.date || ""),
     time: String(item.time || ""),
     status: String(item.status || ""),

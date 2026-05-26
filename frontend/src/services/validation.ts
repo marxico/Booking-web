@@ -1,10 +1,7 @@
 import type {
   BookingFieldErrors,
   BookingFieldName,
-  BookingFormData,
-  MockCardFieldErrors,
-  MockCardFieldName,
-  MockCardFormData
+  BookingFormData
 } from "../types/booking";
 
 const emailPattern = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
@@ -51,6 +48,14 @@ export const validateBookingFormData = (formData: BookingFormData) => {
   validatePhone(formData.phone);
   validateEmail(formData.email);
 
+  if (String(formData.vehicle || "").trim().length < 3) {
+    throw new Error("Enter the vehicle year, make, and model.");
+  }
+
+  if (!String(formData.service || "").trim()) {
+    throw new Error("Choose a service.");
+  }
+
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(formData.date || ""))) {
     throw new Error("Select a valid appointment date.");
   }
@@ -78,6 +83,14 @@ export const getBookingFieldError = (fieldName: BookingFieldName, formData: Book
       validateEmail(formData.email);
     }
 
+    if (fieldName === "vehicle" && String(formData.vehicle || "").trim().length < 3) {
+      return "Enter the vehicle year, make, and model.";
+    }
+
+    if (fieldName === "service" && !String(formData.service || "").trim()) {
+      return "Choose a service.";
+    }
+
     if (fieldName === "date" && !/^\d{4}-\d{2}-\d{2}$/.test(String(formData.date || ""))) {
       return "Select a valid appointment date.";
     }
@@ -93,77 +106,10 @@ export const getBookingFieldError = (fieldName: BookingFieldName, formData: Book
 };
 
 export const getBookingFormErrors = (formData: BookingFormData): BookingFieldErrors => {
-  const fields: BookingFieldName[] = ["name", "phone", "email", "date", "time"];
+  const fields: BookingFieldName[] = ["name", "phone", "email", "vehicle", "service", "date", "time"];
 
   return fields.reduce<BookingFieldErrors>((errors, fieldName) => {
     const error = getBookingFieldError(fieldName, formData);
-
-    if (error) {
-      errors[fieldName] = error;
-    }
-
-    return errors;
-  }, {});
-};
-
-export const validateMockCardFormData = (mockCard: MockCardFormData) => {
-  if (!String(mockCard.cardholder || "").trim()) {
-    throw new Error("Enter the cardholder name.");
-  }
-
-  const number = String(mockCard.number || "").replace(/\D/g, "");
-  const cvv = String(mockCard.cvv || "").replace(/\D/g, "");
-
-  if (number.length < 12 || number.length > 19) {
-    throw new Error("Enter a valid test card number.");
-  }
-
-  if (!/^\d{2}\/\d{2}$/.test(String(mockCard.expiry || "").trim())) {
-    throw new Error("Enter the expiry date as MM/YY.");
-  }
-
-  if (cvv.length < 3 || cvv.length > 4) {
-    throw new Error("Enter a valid CVV.");
-  }
-};
-
-export const getMockCardFieldError = (fieldName: MockCardFieldName, mockCard: MockCardFormData) => {
-  try {
-    if (fieldName === "cardholder" && !String(mockCard.cardholder || "").trim()) {
-      return "Enter the cardholder name.";
-    }
-
-    if (fieldName === "number") {
-      const number = String(mockCard.number || "").replace(/\D/g, "");
-
-      if (number.length < 12 || number.length > 19) {
-        return "Enter a valid test card number.";
-      }
-    }
-
-    if (fieldName === "expiry" && !/^\d{2}\/\d{2}$/.test(String(mockCard.expiry || "").trim())) {
-      return "Enter the expiry date as MM/YY.";
-    }
-
-    if (fieldName === "cvv") {
-      const cvv = String(mockCard.cvv || "").replace(/\D/g, "");
-
-      if (cvv.length < 3 || cvv.length > 4) {
-        return "Enter a valid CVV.";
-      }
-    }
-
-    return "";
-  } catch (error) {
-    return error instanceof Error ? error.message : "Invalid value.";
-  }
-};
-
-export const getMockCardFieldErrors = (mockCard: MockCardFormData): MockCardFieldErrors => {
-  const fields: MockCardFieldName[] = ["cardholder", "number", "expiry", "cvv"];
-
-  return fields.reduce<MockCardFieldErrors>((errors, fieldName) => {
-    const error = getMockCardFieldError(fieldName, mockCard);
 
     if (error) {
       errors[fieldName] = error;

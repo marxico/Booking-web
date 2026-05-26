@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { fetchOrderDetail } from "../../services/adminMockService";
+import { fetchOrderDetail } from "../../services/adminReportService";
 import type { OrderDetail } from "../../types/admin";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });

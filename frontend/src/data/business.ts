@@ -93,3 +93,18 @@ export const serviceAreas = [
   "Olive Branch",
   "Lakeland"
 ];
+
+export const faqs = [
+  {
+    question: "Do you come to my location?",
+    answer: "Yes. Lawson Mobile Mechanic provides on-site auto service at homes, workplaces, hotels, apartments, and parking lots around Memphis."
+  },
+  {
+    question: "Can I book online?",
+    answer: "Yes. Choose a service, pick an available time, pay the booking visit fee securely, and receive confirmation by phone or text."
+  },
+  {
+    question: "Which services are available?",
+    answer: "Common mobile services include diagnostics, brakes, battery and charging checks, oil changes, and roadside mechanic help."
+  }
+];

@@ -1,31 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { operationsTeam as teamSeed } from "../../data/mock/adminOperationsMock";
+import { loadAdminUsers, type AdminTeamMember } from "../../services/adminUsersApi";
 
 export function OperationsTeamPage() {
-  const [team, setTeam] = useState(teamSeed);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [team, setTeam] = useState<AdminTeamMember[]>([]);
+  const [message, setMessage] = useState("Loading admin users...");
 
-  const addMember = () => {
-    if (!name.trim() || !email.trim()) {
-      return;
-    }
-
-    setTeam((current) => [
-      {
-        id: `USR-${current.length + 1}`,
-        displayName: name.trim(),
-        email: email.trim(),
-        role: "Viewer",
-        authProvider: "Password",
-        status: "Active"
-      },
-      ...current
-    ]);
-    setName("");
-    setEmail("");
-  };
+  useEffect(() => {
+    loadAdminUsers()
+      .then((users) => {
+        setTeam(users);
+        setMessage(users.length ? "" : "No admin users found.");
+      })
+      .catch((error) => {
+        setMessage(error instanceof Error ? error.message : "Could not load admin users.");
+      });
+  }, []);
 
   return (
     <section className="admin-page-grid">
@@ -33,27 +23,12 @@ export function OperationsTeamPage() {
         <div>
           <p className="admin-page-hero-card__eyebrow">Operations</p>
           <h2>Team</h2>
-          <p>Admin users and access controls, preserved inside the new React dashboard.</p>
+          <p>Live admin users and access controls.</p>
         </div>
       </div>
 
       <article className="admin-panel-react">
-        <div className="admin-form-grid admin-form-grid--triple">
-          <label className="admin-toolbar__field">
-            <span>Name</span>
-            <input value={name} onChange={(event) => setName(event.target.value)} />
-          </label>
-          <label className="admin-toolbar__field">
-            <span>Email</span>
-            <input value={email} onChange={(event) => setEmail(event.target.value)} />
-          </label>
-          <button className="admin-button admin-button--primary" type="button" onClick={addMember}>
-            Add admin user
-          </button>
-        </div>
-      </article>
-
-      <article className="admin-panel-react">
+        {message ? <p className="admin-status">{message}</p> : null}
         <div className="admin-table-shell">
           <table className="admin-table-react">
             <thead>

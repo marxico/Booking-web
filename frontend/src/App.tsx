@@ -4,13 +4,6 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 import { BookingHomePage } from "./pages/BookingHomePage";
 import { CustomerAgingPage } from "./pages/admin/CustomerAgingPage";
 import { CustomerPage } from "./pages/admin/CustomerPage";
-import { OperationsAnalyticsPage } from "./pages/admin/OperationsAnalyticsPage";
-import { OperationsCalendarPage } from "./pages/admin/OperationsCalendarPage";
-import { OperationsHistoryPage } from "./pages/admin/OperationsHistoryPage";
-import { OperationsOverviewPage } from "./pages/admin/OperationsOverviewPage";
-import { OperationsPricingPage } from "./pages/admin/OperationsPricingPage";
-import { OperationsRequestsPage } from "./pages/admin/OperationsRequestsPage";
-import { OperationsTeamPage } from "./pages/admin/OperationsTeamPage";
 import { DeferredServicesReportPage } from "./pages/admin/DeferredServicesReportPage";
 import { DiscountPage } from "./pages/admin/DiscountPage";
 import { FeePage } from "./pages/admin/FeePage";
@@ -18,6 +11,13 @@ import { InventoryActivityPage } from "./pages/admin/InventoryActivityPage";
 import { InventoryLevelPage } from "./pages/admin/InventoryLevelPage";
 import { ItemsSoldPage } from "./pages/admin/ItemsSoldPage";
 import { LaborPage } from "./pages/admin/LaborPage";
+import { OperationsAnalyticsPage } from "./pages/admin/OperationsAnalyticsPage";
+import { OperationsCalendarPage } from "./pages/admin/OperationsCalendarPage";
+import { OperationsHistoryPage } from "./pages/admin/OperationsHistoryPage";
+import { OperationsOverviewPage } from "./pages/admin/OperationsOverviewPage";
+import { OperationsPricingPage } from "./pages/admin/OperationsPricingPage";
+import { OperationsRequestsPage } from "./pages/admin/OperationsRequestsPage";
+import { OperationsTeamPage } from "./pages/admin/OperationsTeamPage";
 import { OrderDetailPage } from "./pages/admin/OrderDetailPage";
 import { OrdersPage } from "./pages/admin/OrdersPage";
 import { OutstandingInvoicesPage } from "./pages/admin/OutstandingInvoicesPage";
@@ -33,6 +33,15 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<BookingHomePage />} />
+        <Route path="/mobile-mechanic-memphis" element={<BookingHomePage />} />
+        <Route path="/services" element={<BookingHomePage />} />
+        <Route path="/brake-repair-memphis" element={<BookingHomePage />} />
+        <Route path="/battery-replacement-memphis" element={<BookingHomePage />} />
+        <Route path="/oil-change-memphis" element={<BookingHomePage />} />
+        <Route path="/car-diagnostics-memphis" element={<BookingHomePage />} />
+        <Route path="/roadside-assistance-memphis" element={<BookingHomePage />} />
+        <Route path="/promotions" element={<BookingHomePage />} />
+        <Route path="/book" element={<BookingHomePage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="operations/overview" replace />} />
           <Route path="operations/overview" element={<OperationsOverviewPage />} />

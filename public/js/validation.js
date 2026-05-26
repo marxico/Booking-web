@@ -54,27 +54,6 @@ export const validateBookingFormData = ({ name, phone, email, date, time }) => {
   }
 };
 
-export const validateMockCardFormData = ({ cardholder, number, expiry, cvv }) => {
-  if (!String(cardholder || "").trim()) {
-    throw new Error("Enter the cardholder name.");
-  }
-
-  const normalizedNumber = String(number || "").replace(/\D/g, "");
-  const normalizedCvv = String(cvv || "").replace(/\D/g, "");
-
-  if (normalizedNumber.length < 12 || normalizedNumber.length > 19) {
-    throw new Error("Enter a valid test card number.");
-  }
-
-  if (!/^\d{2}\/\d{2}$/.test(String(expiry || "").trim())) {
-    throw new Error("Enter the expiry date as MM/YY.");
-  }
-
-  if (normalizedCvv.length < 3 || normalizedCvv.length > 4) {
-    throw new Error("Enter a valid CVV.");
-  }
-};
-
 export const validateAdminIdentifier = (value) => {
   const identifier = String(value || "").trim().toLowerCase();
 

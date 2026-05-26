@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { fetchAdminModuleDataset } from "../../services/adminMockService";
+import { fetchAdminModuleDataset } from "../../services/adminReportService";
 import type { AdminDatasetRecord, AdminModuleDataset, AdminModuleKey } from "../../types/admin";
 
 const formatCellValue = (value: string | number | undefined) => {

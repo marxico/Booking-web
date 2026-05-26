@@ -17,7 +17,10 @@
     "typecheck": "tsc --noEmit",
     "logs:all": "npm run logs:backend",
     "logs:backend": "powershell -ExecutionPolicy Bypass -File scripts/watch-backend-logs.ps1",
-    "terminal:backend": "powershell -ExecutionPolicy Bypass -File scripts/open-backend-terminal.ps1"
+    "terminal:backend": "powershell -ExecutionPolicy Bypass -File scripts/open-backend-terminal.ps1",
+    "backup:db": "powershell -ExecutionPolicy Bypass -File scripts/backup-production-db.ps1",
+    "restore:db": "powershell -ExecutionPolicy Bypass -File scripts/restore-encrypted-db.ps1",
+    "production:check": "powershell -ExecutionPolicy Bypass -File scripts/production-check.ps1"
   },
   "keywords": [],
   "author": "",

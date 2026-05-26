@@ -4,7 +4,9 @@ const emailPattern = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[
 const usernamePattern = /^[a-z0-9._-]{3,32}$/i;
 const allowedNamePattern = /^[A-Za-zÀ-ÿ0-9 .,'-]{2,80}$/;
 const phonePattern = /^\+?[0-9()\-.\s]{10,20}$/;
+const vehiclePattern = /^[A-Za-z0-9 .,'&()/-]{3,100}$/;
 const validRoles = new Set<AdminRole>(['super_admin', 'manager', 'analyst', 'viewer']);
+const allowedBookingServices = new Set(['Brakes', 'Battery', 'Oil Change', 'Diagnostics', 'Roadside']);
 
 const createValidationError = (message: string): AppError => {
   const error = new Error(message) as AppError;
@@ -43,20 +45,48 @@ const isValidPhone = (value: string): boolean => {
   return true;
 };
 
+const validateAppointmentDate = (value: string): string => {
+  const date = String(value || '').trim();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw createValidationError('Enter a valid appointment date.');
+  }
+
+  const selectedDate = new Date(`${date}T00:00:00.000Z`);
+  const today = new Date();
+  const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  const maxDate = new Date(todayUtc);
+  maxDate.setUTCDate(maxDate.getUTCDate() + 90);
+
+  if (Number.isNaN(selectedDate.getTime()) || selectedDate < todayUtc || selectedDate > maxDate) {
+    throw createValidationError('Choose an appointment date within the next 90 days.');
+  }
+
+  return date;
+};
+
 const validateBookingPayloadStrict = (payload: BookingRequest): {
   name: string;
   phone: string;
   email: string;
+  vehicle: string;
+  service: string;
   date: string;
   time: string;
 } => {
   const name = String(payload.name || '').trim();
   const phone = String(payload.phone || '').trim();
   const email = String(payload.email || '').trim().toLowerCase();
+  const vehicle = String(payload.vehicle || '').trim();
+  const service = String(payload.service || '').trim();
   const date = String(payload.date || '').trim();
   const time = String(payload.time || '').trim();
 
-  if (!name || !phone || !email || !date || !time) {
+  if (String(payload.company || '').trim()) {
+    throw createValidationError('Booking request could not be accepted.');
+  }
+
+  if (!name || !phone || !email || !vehicle || !service || !date || !time) {
     throw createValidationError('All booking fields are required');
   }
 
@@ -72,11 +102,17 @@ const validateBookingPayloadStrict = (payload: BookingRequest): {
     throw createValidationError('Enter a valid email address.');
   }
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    throw createValidationError('Enter a valid appointment date.');
+  if (!vehiclePattern.test(vehicle)) {
+    throw createValidationError('Enter the vehicle year, make, and model.');
   }
 
-  return { name, phone, email, date, time };
+  if (!allowedBookingServices.has(service)) {
+    throw createValidationError('Choose a valid service.');
+  }
+
+  validateAppointmentDate(date);
+
+  return { name, phone, email, vehicle, service, date, time };
 };
 
 const validateAdminIdentifier = (value: string): string => {
@@ -175,6 +211,7 @@ export {
   isValidEmail,
   isValidPhone,
   normalizePhoneDigits,
+  validateAppointmentDate,
   validateAdminIdentifier,
   validateAdminProfileInput,
   validateBookingPayloadStrict,

@@ -1,6 +1,6 @@
 # Booking-web
 
-Booking application with a React frontend and a modular TypeScript backend. The current flow is set up so an appointment can only be booked after paying the required amount through Square or the mock test mode.
+Booking application with a React frontend and a modular TypeScript backend. The current production flow requires a real Square payment before a booking request can be saved.
 
 ## Run locally
 
@@ -10,7 +10,7 @@ Booking application with a React frontend and a modular TypeScript backend. The 
 npm install
 ```
 
-2. Create your `.env` file from the example and fill in the Square credentials:
+2. Create your `.env` file from the example and fill in production-safe values:
 
 ```bash
 copy .env.example .env
@@ -18,10 +18,14 @@ copy .env.example .env
 
 Important variables:
 
+- `SITE_URL`: public HTTPS domain used for SEO, sitemap, and canonical URLs
+- `DATA_ENCRYPTION_KEY`: at least 32 random characters for customer-field encryption and encrypted backups
+- `ADMIN_PASSWORD`: strong unique admin password
 - `SQUARE_ENVIRONMENT`: `sandbox` or `production`
 - `SQUARE_ACCESS_TOKEN`: Square access token
 - `SQUARE_APP_ID`: application ID for the Web Payments SDK
 - `SQUARE_LOCATION_ID`: location ID where the charge will be registered
+- `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile anti-bot protection
 
 If you do not fill in the Square variables and the booking fee is still enabled in the admin panel, the site disables online booking until Square is configured.
 
@@ -40,10 +44,10 @@ http://localhost:3000
 ## Structure
 
 - `frontend/`: public frontend with React + Vite
-- `public/`: static admin and shared assets
+- `public/`: static login and shared assets
 - `server/`: backend configuration, database, and services
 - `server.ts`: main server bootstrap
-- `appointments.db`: local SQLite database
+- `data/production.sqlite`: local SQLite database, ignored by git
 - `.env` and `.env.example`: variables required for local development
 
 ## Square
@@ -54,6 +58,13 @@ When Square is configured:
 - The form tokenizes the card in the browser.
 - The backend charges the configured booking fee and then saves the appointment.
 - The admin panel shows payment status, amount, and `square_payment_id`.
+
+## Production safety
+
+- Production startup is blocked if Square is not configured, the admin password is weak, or `DATA_ENCRYPTION_KEY` is missing.
+- Customer name, phone, email, and vehicle details are encrypted in SQLite when `DATA_ENCRYPTION_KEY` is set.
+- Database backups are encrypted by default with `npm run backup:db`.
+- The admin dashboard is not served unless a valid admin session exists.
 
 ## Pricing
 

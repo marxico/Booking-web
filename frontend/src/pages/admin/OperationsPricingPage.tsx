@@ -96,6 +96,8 @@ export function OperationsPricingPage() {
     }
   };
 
+  const formatPrice = (priceCents: number) => `$${(priceCents / 100).toFixed(2)}`;
+
   if (isLoading) {
     return <div className="admin-state-card">Loading pricing...</div>;
   }
@@ -120,15 +122,26 @@ export function OperationsPricingPage() {
 
       <p className="admin-inline-message">{message}</p>
 
-      <div className="admin-card-grid">
+      <div className="admin-pricing-grid">
         {items.map((item) => (
-          <article key={item.code} className="admin-panel-react">
-            <div className="admin-form-grid">
+          <article key={item.code} className="admin-panel-react admin-pricing-card">
+            <div className="admin-pricing-card__header">
+              <div>
+                <span className="admin-pricing-card__code">{item.code}</span>
+                <h3>{item.name || "Untitled service"}</h3>
+              </div>
+              <div className="admin-pricing-card__price">
+                <strong>{formatPrice(item.priceCents)}</strong>
+                <span>{item.isActive ? "Public" : "Hidden"}</span>
+              </div>
+            </div>
+
+            <div className="admin-pricing-form">
               <label className="admin-toolbar__field">
                 <span>Name</span>
                 <input value={item.name} onChange={(event) => updateItem(item.code, "name", event.target.value)} />
               </label>
-              <label className="admin-toolbar__field">
+              <label className="admin-toolbar__field admin-pricing-form__wide">
                 <span>Description</span>
                 <input value={item.description} onChange={(event) => updateItem(item.code, "description", event.target.value)} />
               </label>
@@ -162,16 +175,21 @@ export function OperationsPricingPage() {
                 <span>Discount label</span>
                 <input value={item.discountLabel} placeholder="Spring special" onChange={(event) => updateItem(item.code, "discountLabel", event.target.value)} />
               </label>
-              <label className="admin-check-row">
+            </div>
+
+            <div className="admin-pricing-card__footer">
+              <label className="admin-switch-row">
                 <input type="checkbox" checked={item.isBookingFee} onChange={(event) => updateItem(item.code, "isBookingFee", event.target.checked)} />
-                <span>Required booking fee</span>
+                <span />
+                <strong>Booking fee</strong>
               </label>
-              <label className="admin-check-row">
+              <label className="admin-switch-row">
                 <input type="checkbox" checked={item.isActive} onChange={(event) => updateItem(item.code, "isActive", event.target.checked)} />
-                <span>Visible publicly</span>
+                <span />
+                <strong>Public</strong>
               </label>
-              <button className="admin-button" type="button" onClick={() => removeService(item.code)}>
-                Remove service
+              <button className="admin-button admin-button--danger" type="button" onClick={() => removeService(item.code)}>
+                Remove
               </button>
             </div>
           </article>

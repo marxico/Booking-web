@@ -12,18 +12,9 @@ export type PricingItem = {
   isBookingFee: boolean;
 };
 
-export type MockCardPreset = {
-  label: string;
-  description: string;
-  number: string;
-  expiry: string;
-  cvv: string;
-  result: "approved" | "declined";
-};
-
 export type SquareConfig = {
   enabled: boolean;
-  paymentMode: "mock" | "square" | string;
+  paymentMode: "square";
   paymentProviderLabel: string;
   environment: "sandbox" | "production" | string;
   appId: string;
@@ -31,31 +22,23 @@ export type SquareConfig = {
   paymentRequired: boolean;
   serviceCallOutFeeName: string;
   serviceCallOutFeeFormatted: string;
-  mockCards?: MockCardPreset[];
+  turnstileSiteKey?: string;
 };
 
 export type BookingFormData = {
   name: string;
   phone: string;
   email: string;
+  vehicle: string;
+  service: string;
   date: string;
   time: string;
+  company: string;
 };
 
 export type BookingFieldName = keyof BookingFormData;
 
 export type BookingFieldErrors = Partial<Record<BookingFieldName, string>>;
-
-export type MockCardFormData = {
-  cardholder: string;
-  number: string;
-  expiry: string;
-  cvv: string;
-};
-
-export type MockCardFieldName = keyof MockCardFormData;
-
-export type MockCardFieldErrors = Partial<Record<MockCardFieldName, string>>;
 
 export type BookingMessage = {
   text: string;

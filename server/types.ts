@@ -43,22 +43,6 @@ export interface PricingItem {
   updatedAt?: string;
 }
 
-export interface MockCardInput {
-  cardholder?: string;
-  number?: string;
-  expiry?: string;
-  cvv?: string;
-}
-
-export interface MockCardScenario {
-  label: string;
-  number: string;
-  expiry: string;
-  cvv: string;
-  result: 'approved' | 'declined' | 'review';
-  description: string;
-}
-
 export interface PaymentRecord {
   id?: string | null;
   orderId?: string | null;
@@ -67,7 +51,6 @@ export interface PaymentRecord {
 
 export interface PaymentInput {
   sourceId?: string;
-  mockCard?: MockCardInput;
   amountCents: number;
   referenceId: string;
   note: string;
@@ -77,10 +60,13 @@ export interface BookingRequest {
   name?: string;
   phone?: string;
   email?: string;
+  vehicle?: string;
+  service?: string;
   date?: string;
   time?: string;
+  company?: string;
   sourceId?: string;
-  mockCard?: MockCardInput;
+  turnstileToken?: string;
 }
 
 export interface AppointmentRow {
@@ -89,6 +75,8 @@ export interface AppointmentRow {
   name: string;
   phone: string;
   email: string;
+  vehicle_details?: string;
+  service_requested?: string;
   date: string;
   time: string;
   status: string;
