@@ -213,11 +213,14 @@ export function BookingHomePage() {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!location.hash) {
+    if (location.hash) {
+      scrollToSection(location.hash.replace("#", ""));
       return;
     }
 
-    scrollToSection(location.hash.replace("#", ""));
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    });
   }, [location.hash, location.pathname]);
 
   useEffect(() => {
