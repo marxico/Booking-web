@@ -3,7 +3,7 @@ services:
     name: lawson-booking
     runtime: node
     plan: starter
-    buildCommand: npm ci --include=dev && npm run build
+    buildCommand: npm run render:build
     startCommand: npm start
     healthCheckPath: /healthz
     autoDeploy: true

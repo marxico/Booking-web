@@ -4,10 +4,11 @@
   "description": "Booking app with backend",
   "main": "server.ts",
   "engines": {
-    "node": "24.x"
+    "node": "22.x"
   },
   "scripts": {
     "start": "tsx server.ts",
+    "render:build": "npm ci --include=dev && npm rebuild sqlite3 --build-from-source && npm run build",
     "stop": "powershell -Command \"$connections = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($connections) { $connections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; Write-Host 'Stopped server on port 3000.' } else { Write-Host 'No server running on port 3000.' }\"",
     "restart": "npm run stop && npm start",
     "build": "npm run typecheck && vite build --config frontend/vite.config.mjs",

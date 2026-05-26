@@ -45,9 +45,11 @@ The Render service mounts a persistent disk at `/var/data`, so appointments and 
 Render uses:
 
 ```bash
-npm ci --include=dev && npm run build
+npm run render:build
 npm start
 ```
+
+`render:build` installs dev dependencies for TypeScript/Vite, rebuilds the native `sqlite3` module from source on Render's Linux image, and then builds the frontend.
 
 Health check:
 
