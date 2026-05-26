@@ -221,6 +221,41 @@ export function BookingHomePage() {
   }, [location.hash, location.pathname]);
 
   useEffect(() => {
+    const revealElements = Array.from(document.querySelectorAll<HTMLElement>(".customer-page .reveal"));
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    revealElements.forEach((element, index) => {
+      element.style.setProperty("--reveal-index", String(index % 6));
+    });
+
+    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+      revealElements.forEach((element) => element.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      {
+        rootMargin: "0px 0px -12% 0px",
+        threshold: 0.16
+      }
+    );
+
+    revealElements.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, [visiblePricing.length]);
+
+  useEffect(() => {
     loadBookingSetup()
       .then((setup) => {
         setPricing(setup.pricing);
@@ -410,7 +445,7 @@ export function BookingHomePage() {
                 <span>Memphis area</span>
               </div>
             </div>
-            <div className="hero-photo reveal visible">
+            <div className="hero-photo reveal reveal--scale">
               <img src="/assets/mechanic-hero.jpg" alt="Mechanic inspecting a vehicle engine" width="900" height="600" />
               <div className="hero-proof">
                 <strong>{bookingFee ? `${bookingFee.priceFormatted} booking visit` : "Fast booking online"}</strong>
@@ -422,15 +457,15 @@ export function BookingHomePage() {
 
         <section id="services">
           <div className="container split">
-            <div className="section-copy reveal visible">
+            <div className="section-copy reveal reveal--slide-left">
               <span className="eyebrow">Services</span>
               <h2>Simple repairs, brought to your location.</h2>
               <p>Mobile service for routine maintenance, urgent issues, and clear diagnostics before bigger repairs.</p>
               <img className="section-image" src="/assets/mechanic-services-premium.png" alt="Mechanic performing a diagnostic check under the hood of a car" width="1680" height="960" loading="lazy" />
             </div>
-            <div className="services-list reveal visible">
+            <div className="services-list reveal reveal--slide-right">
               {services.map((service) => (
-                <article key={service.title}>
+                <article className="reveal reveal--item" key={service.title}>
                   <span>{service.initial}</span>
                   <div>
                     <h3><a href={serviceUrlByTitle[service.title] || "/services"}>{service.title}</a></h3>
@@ -444,14 +479,14 @@ export function BookingHomePage() {
 
         <section id="promotions">
           <div className="container">
-            <div className="section-heading reveal visible">
+            <div className="section-heading reveal">
               <span className="eyebrow">Promotions</span>
               <h2>Current offers.</h2>
               <p>Useful savings for new customers and common maintenance appointments.</p>
             </div>
             <div className="promo-grid">
               {promotions.map((promotion) => (
-                <article className="promo-card reveal visible" key={promotion.title}>
+                <article className="promo-card reveal reveal--item reveal--lift" key={promotion.title}>
                   <span className="promo-label">{promotion.label}</span>
                   <h3>{promotion.title}</h3>
                   <p>{promotion.copy}</p>
@@ -463,12 +498,12 @@ export function BookingHomePage() {
 
         <section id="appointment">
           <div className="container">
-            <div className="section-heading reveal visible">
+            <div className="section-heading reveal">
               <span className="eyebrow">Booking</span>
               <h2>Request an appointment.</h2>
               <p>Send the basics and we will confirm the service details before the visit.</p>
             </div>
-            <div className="appointment-layout reveal visible">
+            <div className="appointment-layout reveal reveal--scale">
               <form className="form-card" noValidate onSubmit={handleSubmit}>
                 <div className="form-grid">
                   <div className="field">
@@ -549,7 +584,7 @@ export function BookingHomePage() {
                   </div>
                 </div>
               </form>
-              <aside className="info-card">
+              <aside className="info-card reveal reveal--slide-right">
                 <span className="info-card__eyebrow">What to expect</span>
                 <h3>Clear service from the first request.</h3>
                 <ul className="info-list">
@@ -565,13 +600,13 @@ export function BookingHomePage() {
         {visiblePricing.length ? (
           <section id="pricing">
             <div className="container">
-              <div className="section-heading reveal visible">
+              <div className="section-heading reveal">
                 <span className="eyebrow">Starting prices</span>
                 <h2>Plan before you book.</h2>
               </div>
               <div className="pricing-grid">
                 {visiblePricing.map((item) => (
-                  <article className="service-card reveal visible" key={item.code}>
+                  <article className="service-card reveal reveal--item reveal--lift" key={item.code}>
                     <div className="service-meta">
                       <span className="service-tag">{item.name}</span>
                       <strong className="price">{item.priceFormatted}</strong>
@@ -585,7 +620,7 @@ export function BookingHomePage() {
         ) : null}
 
         <section id="area">
-          <div className="container final-cta">
+          <div className="container final-cta reveal reveal--scale">
             <span className="eyebrow">Service area</span>
             <h2>Serving Memphis and nearby areas.</h2>
             <p>{serviceAreas.join(", ")}</p>
@@ -598,13 +633,13 @@ export function BookingHomePage() {
 
         <section id="faq">
           <div className="container">
-            <div className="section-heading reveal visible">
+            <div className="section-heading reveal">
               <span className="eyebrow">Questions</span>
               <h2>Mobile mechanic FAQ.</h2>
             </div>
             <div className="faq-grid">
               {faqs.map((faq) => (
-                <article className="faq-item" key={faq.question}>
+                <article className="faq-item reveal reveal--item" key={faq.question}>
                   <h3>{faq.question}</h3>
                   <p>{faq.answer}</p>
                 </article>
