@@ -35,10 +35,12 @@ Save the generated `ADMIN_PASSWORD` from the Render dashboard before handing the
 The app uses SQLite at:
 
 ```text
-/var/data/production.sqlite
+/opt/render/project/src/data/production.sqlite
 ```
 
-The Render service mounts a persistent disk at `/var/data`, so appointments and admin/pricing data survive deploys and restarts. Do not remove the disk after launch unless you have a verified backup.
+The Render service mounts a persistent disk at `/opt/render/project/src/data`, so appointments and admin/pricing data survive deploys and restarts. Do not remove the disk after launch unless you have a verified backup.
+
+For a temporary free test without a persistent disk, this same path is writable but ephemeral. Any bookings can disappear after restarts or redeploys, so use it only for testing.
 
 ## Commands
 
