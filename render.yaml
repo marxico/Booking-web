@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: lawson-booking
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    disk:
+      name: lawson-booking-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/production.sqlite
+      - key: SITE_URL
+        sync: false
+      - key: DATA_ENCRYPTION_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_DISPLAY_NAME
+        value: Lawson Admin
+      - key: ADMIN_ROLE
+        value: super_admin
+      - key: ADMIN_ENTRY_PATH
+        value: /lawson-portal
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: SQUARE_ENVIRONMENT
+        value: production
+      - key: SQUARE_ACCESS_TOKEN
+        sync: false
+      - key: SQUARE_APP_ID
+        sync: false
+      - key: SQUARE_LOCATION_ID
+        sync: false
+      - key: SQUARE_CURRENCY
+        value: USD
+      - key: TURNSTILE_SITE_KEY
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false

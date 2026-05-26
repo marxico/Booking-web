@@ -66,6 +66,12 @@ When Square is configured:
 - Database backups are encrypted by default with `npm run backup:db`.
 - The admin dashboard is not served unless a valid admin session exists.
 
+## Deploy on Render
+
+Use the included `render.yaml` Blueprint for Render. It creates one Node web service with a persistent disk mounted at `/var/data`, and the app stores SQLite data at `/var/data/production.sqlite`.
+
+See `RENDER_DEPLOY.md` for the exact environment variables and launch checks.
+
 ## Pricing
 
 - Public prices are served from the `service_pricing` table.

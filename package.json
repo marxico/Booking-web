@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Booking app with backend",
   "main": "server.ts",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "start": "tsx server.ts",
     "stop": "powershell -Command \"$connections = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($connections) { $connections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; Write-Host 'Stopped server on port 3000.' } else { Write-Host 'No server running on port 3000.' }\"",
@@ -32,7 +35,8 @@
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.14.0",
     "sqlite3": "^6.0.1",
-    "square": "^44.0.1"
+    "square": "^44.0.1",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
@@ -40,7 +44,6 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.3"
   }

@@ -57,6 +57,7 @@ const loginAttempts = new Map();
 const bookingAttempts = new Map();
 const clientLogAttempts = new Map();
 
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(express.json({ limit: '64kb' }));
 app.use((req, res, next) => {
@@ -66,6 +67,9 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
   res.setHeader(
     'Content-Security-Policy',
     [
