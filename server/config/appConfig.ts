@@ -91,7 +91,8 @@ export const square = {
   accessToken: process.env.SQUARE_ACCESS_TOKEN || '',
   appId: process.env.SQUARE_APP_ID || '',
   locationId: process.env.SQUARE_LOCATION_ID || '',
-  currency: process.env.SQUARE_CURRENCY || 'USD'
+  currency: process.env.SQUARE_CURRENCY || 'USD',
+  apiVersion: process.env.SQUARE_VERSION || '2025-10-16'
 };
 
 export const turnstile = {

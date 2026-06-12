@@ -56,6 +56,8 @@ const app = express();
 const loginAttempts = new Map();
 const bookingAttempts = new Map();
 const clientLogAttempts = new Map();
+const hasRealConfigValue = (value) => Boolean(value) && !String(value).startsWith('REPLACE_WITH_');
+const turnstileConfigured = hasRealConfigValue(turnstile.siteKey) && hasRealConfigValue(turnstile.secretKey);
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -137,10 +139,14 @@ const assertProductionConfig = () => {
   if (!hasEncryptionKey()) {
     throw new Error('Production startup blocked: set DATA_ENCRYPTION_KEY to at least 32 random characters.');
   }
+
+  if (!turnstileConfigured) {
+    throw new Error('Production startup blocked: configure real Cloudflare Turnstile keys before accepting bookings.');
+  }
 };
 
 const verifyTurnstileToken = async ({ token, ip }) => {
-  if (!turnstile.secretKey) {
+  if (!turnstileConfigured) {
     return;
   }
 
@@ -662,7 +668,7 @@ app.get('/square/config', async (req, res) => {
       serviceCallOutFeeName: bookingFee.name,
       serviceCallOutFeeCents: bookingFee.priceCents,
       serviceCallOutFeeFormatted: bookingFee.priceFormatted,
-      turnstileSiteKey: turnstile.siteKey
+      turnstileSiteKey: turnstileConfigured ? turnstile.siteKey : ''
     });
   } catch (error) {
     res.status(500).json({ error: 'Could not load Square payment settings.' });
@@ -676,7 +682,7 @@ app.get('/healthz', async (req, res) => {
       ok: true,
       paymentProvider: paymentProviderLabel,
       squareConfigured: paymentEnabled,
-      turnstileConfigured: Boolean(turnstile.secretKey)
+      turnstileConfigured
     });
   } catch (error) {
     res.status(503).json({ ok: false });
@@ -805,7 +811,7 @@ const buildStructuredData = (route, page) => {
     name: 'Lawson Mobile Mechanic',
     url: canonicalUrl,
     image: imageUrl,
-    telephone: '(901) 555-0123',
+    telephone: '(901) 306-3525',
     email: 'service@lawsonmobilemechanic.com',
     priceRange: '$$',
     address: {

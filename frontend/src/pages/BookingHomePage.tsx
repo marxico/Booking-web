@@ -448,7 +448,7 @@ export function BookingHomePage() {
                 <span>Memphis area</span>
               </div>
             </div>
-            <div className="hero-photo reveal reveal--scale">
+            <div className="hero-photo reveal reveal--scale is-visible">
               <img src="/assets/mechanic-hero.jpg" alt="Mechanic inspecting a vehicle engine" width="900" height="600" />
               <div className="hero-proof">
                 <strong>{bookingFee ? `${bookingFee.priceFormatted} booking visit` : "Fast booking online"}</strong>
@@ -460,11 +460,11 @@ export function BookingHomePage() {
 
         <section id="services">
           <div className="container split">
-            <div className="section-copy reveal reveal--slide-left">
+            <div className="section-copy reveal reveal--slide-left is-visible">
               <span className="eyebrow">Services</span>
               <h2>Simple repairs, brought to your location.</h2>
               <p>Mobile service for routine maintenance, urgent issues, and clear diagnostics before bigger repairs.</p>
-              <img className="section-image" src="/assets/mechanic-services-premium.png" alt="Mechanic performing a diagnostic check under the hood of a car" width="1680" height="960" loading="lazy" />
+              <img className="section-image owner-photo" src="/assets/boss.jpeg" alt="Lawson Mobile Mechanic owner standing between two vehicles" width="768" height="1024" loading="lazy" />
             </div>
             <div className="services-list reveal reveal--slide-right">
               {services.map((service) => (
@@ -516,7 +516,7 @@ export function BookingHomePage() {
                   </div>
                   <div className="field">
                     <label htmlFor="phone">Phone</label>
-                    <input id="phone" name="phone" type="tel" placeholder="(901) 555-0123" autoComplete="tel" value={formData.phone} onChange={handleFormChange} />
+                    <input id="phone" name="phone" type="tel" placeholder="(901) 306-3525" autoComplete="tel" value={formData.phone} onChange={handleFormChange} />
                     {fieldErrors.phone ? <p className="field-error">{fieldErrors.phone}</p> : null}
                   </div>
                   <div className="field">

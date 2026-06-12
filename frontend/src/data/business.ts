@@ -1,8 +1,8 @@
 export const business = {
   name: "Lawson Mobile Mechanic",
   tagline: "Memphis on-site auto repair",
-  phone: "(901) 555-0123",
-  phoneHref: "tel:+19015550123",
+  phone: "(901) 306-3525",
+  phoneHref: "tel:+19013063525",
   email: "service@lawsonmobilemechanic.com",
   emailHref: "mailto:service@lawsonmobilemechanic.com",
   location: "Memphis, Tennessee",

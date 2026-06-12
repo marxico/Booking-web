@@ -1324,6 +1324,13 @@ section {
   box-shadow: var(--shadow);
 }
 
+.owner-photo {
+  aspect-ratio: 4 / 3;
+  min-height: 320px;
+  max-height: 440px;
+  object-position: center 38%;
+}
+
 .hero-proof {
   position: absolute;
   left: 18px;

@@ -4,11 +4,11 @@ export function ServicesSection() {
   return (
     <section id="services">
       <div className="container split">
-        <div className="section-copy reveal visible">
+        <div className="section-copy reveal visible is-visible">
           <span className="eyebrow">Services</span>
           <h2>Real repairs without the waiting room.</h2>
           <p>Clear diagnosis, clean work, and practical recommendations for Memphis drivers who need their car back on schedule.</p>
-          <img className="section-image" src="/assets/mechanic-engine.jpg" alt="Mechanic working under the hood of a car" width="900" height="600" loading="lazy" decoding="async" />
+          <img className="section-image owner-photo" src="/assets/boss.jpeg" alt="Lawson Mobile Mechanic owner standing between two vehicles" width="768" height="1024" loading="lazy" decoding="async" />
         </div>
         <div className="services-list reveal visible">
           {services.map((service) => (
